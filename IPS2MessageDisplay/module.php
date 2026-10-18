@@ -97,12 +97,24 @@ class IPS2MessageDisplay extends IPSModule
 	 	// Empfangene Daten von der Device Instanz
 	    	$data = json_decode($JSONString);
 	    	$Result = 0;
+		if ((is_object($data) == false) OR (isset($data->Function) == false) OR (is_string($data->Function) == false)) {
+			return $Result;
+		}
 	 	switch ($data->Function) {
 		    	// Maximale Bewässerungszeit
 			case "Add":
+				if ((isset($data->MessageID, $data->Text, $data->Expires, $data->Removable, $data->Type, $data->Image, $data->WebfrontID, $data->Page) == false)
+					OR (is_int($data->MessageID) == false) OR (is_string($data->Text) == false) OR (is_int($data->Expires) == false)
+					OR (is_bool($data->Removable) == false) OR (is_int($data->Type) == false) OR (is_string($data->Image) == false)
+					OR (is_int($data->WebfrontID) == false) OR (is_string($data->Page) == false)) {
+					break;
+				}
 	 			$this->WorkProcess("Add", $data->MessageID, $data->Text, $data->Expires, $data->Removable, $data->Type, $data->Image, $data->WebfrontID, $data->Page);
 				break;
 			case "Remove":
+				if ((isset($data->MessageID) == false) OR (is_int($data->MessageID) == false)) {
+					break;
+				}
 				$this->WorkProcess("Remove", $data->MessageID, "", 0, false, 0, "", 0, "");		 
 				break;
 		}
