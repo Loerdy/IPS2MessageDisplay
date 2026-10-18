@@ -274,28 +274,25 @@ class IPS2MessageDisplay extends IPSModule
 	{		
 		If ($this->ReadPropertyBoolean("Open") == true) {
 			$this->SendDebug("ProcessHookData", "Ausfuehrung: ".$_SERVER['HOOK'], 0);
-			switch ($_GET['action']) {
+			If ((isset($_GET['action'], $_GET['MessageID']) == false) OR (is_string($_GET['action']) == false) OR (is_string($_GET['MessageID']) == false)) {
+				$this->SendDebug("ProcessHookData", "Ungueltige WebHook-Parameter!", 0);
+				return;
+			}
+			$Action = $_GET['action'];
+			$MessageID = filter_var($_GET['MessageID'], FILTER_VALIDATE_INT, array("options" => array("min_range" => 1)));
+			If ((($Action <> "remove") AND ($Action <> "switch")) OR ($MessageID === false)) {
+				$this->SendDebug("ProcessHookData", "Ungueltige WebHook-Parameter!", 0);
+				return;
+			}
+			switch ($Action) {
 			    	case 'remove':
-			      		$MessageID = isset($_GET['MessageID']) ? $_GET['MessageID'] : -1;
-			      		if ($MessageID > 0) {
-						$this->WorkProcess("Remove", $MessageID, "", 0, false, 0, "", 0, "");
+					$this->WorkProcess("Remove", $MessageID, "", 0, false, 0, "", 0, "");
 				  		//$this->Remove($MessageID);
-			      		}
-					else {
-						$this->SendDebug("ProcessHookData", "Keine MessageID!", 0);
-					}
 			      		break;
 			    case 'switch':
-			      		$MessageID = isset($_GET['MessageID']) ? $_GET['MessageID'] : -1;
-			      		if ($MessageID > 0) {
-						$this->WorkProcess("Switch", $MessageID, "", 0, false, 0, "", 0, "");
+					$this->WorkProcess("Switch", $MessageID, "", 0, false, 0, "", 0, "");
 				  		//$this->Switch($MessageID);
-			      		}
-					else {
-						$this->SendDebug("ProcessHookData", "Keine MessageID!", 0);
-					}
 			      		break;
-			      break;
 			}
 		}
 	}       
