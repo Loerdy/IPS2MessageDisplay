@@ -391,14 +391,17 @@ class IPS2MessageDisplay extends IPSModule
 			SetValueInteger($this->GetIDForIdent("MessageCount"), count($MessageData));
 		}
 		
-		If ((count($MessageData) == 0) AND ($this->ReadPropertyInteger("ActuatorID") > 0)) {
-			If (GetValueBoolean($this->ReadPropertyInteger("ActuatorID")) == true) {
-				SetValueBoolean($this->ReadPropertyInteger("ActuatorID"), false);
+		$ActuatorID = $this->ReadPropertyInteger("ActuatorID");
+		If ((count($MessageData) == 0) AND ($ActuatorID > 0) AND (IPS_VariableExists($ActuatorID) == true)
+			AND (IPS_GetVariable($ActuatorID)['VariableType'] == VARIABLETYPE_BOOLEAN)) {
+			If (GetValueBoolean($ActuatorID) == true) {
+				SetValueBoolean($ActuatorID, false);
 			}
 		}
-		elseif ((count($MessageData) > 0) AND ($this->ReadPropertyInteger("ActuatorID") > 0)) {
-			If (GetValueBoolean($this->ReadPropertyInteger("ActuatorID")) == false) {
-				SetValueBoolean($this->ReadPropertyInteger("ActuatorID"), true);
+		elseif ((count($MessageData) > 0) AND ($ActuatorID > 0) AND (IPS_VariableExists($ActuatorID) == true)
+			AND (IPS_GetVariable($ActuatorID)['VariableType'] == VARIABLETYPE_BOOLEAN)) {
+			If (GetValueBoolean($ActuatorID) == false) {
+				SetValueBoolean($ActuatorID, true);
 			}
 		}
 		
