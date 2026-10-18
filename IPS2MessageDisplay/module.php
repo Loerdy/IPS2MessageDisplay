@@ -356,10 +356,10 @@ class IPS2MessageDisplay extends IPSModule
 				if ($ShowTime == true) {
 					$SecondsToday= date('H') * 3600 + date('i') * 60 + date('s');
 					If ($Message['Timestamp'] <= (time() - $SecondsToday)) {
-						$content .= '<td class="lst">'.date("d.m.Y H:i", $Message['Timestamp']).'</td>';
+						$content .= '<td class="lst">'.date("d.m.Y H:i", (int) $Message['Timestamp']).'</td>';
 					}
 					else {
-						$content .= '<td class="lst">'.date("H:i:s", $Message['Timestamp']).'</td>';
+						$content .= '<td class="lst">'.date("H:i:s", (int) $Message['Timestamp']).'</td>';
 					}
 				}
 				$content .= '<td class="mid">'.$Message['Text'].'</td>';
