@@ -326,7 +326,7 @@
 		case "ChangeVariable":
 				$this->SendDebug("RequestAction", "Wert: ".$Value, 0);
 				// Registrierung für die Änderung der Variablen
-				If ($Value > 0) {
+				If (($Value > 0) AND (IPS_VariableExists($Value) == true)) {
 					$this->RegisterMessage($Value, 10603);
 					switch($this->GetVariableType($Value)) {
 						case 0: // Boolean
@@ -375,7 +375,7 @@
 		case "ChangeInstance":
 				$this->SendDebug("RequestAction", "Wert: ".$Value, 0);
 				// Registrierung für die Änderung der Variablen
-				If ($Value > 0) {
+				If (($Value > 0) AND (IPS_InstanceExists($Value) == true)) {
 					$this->RegisterMessage($Value, 10505);
 				}	
 			break;
@@ -456,6 +456,13 @@
 			case IM_CHANGESTATUS:
 				$this->SendDebug("MessageSink", "SenderID: ".$SenderID, 0);
 				If ($SenderID == $this->ReadPropertyInteger("InstanceID")) {
+					If (IPS_InstanceExists($SenderID) == false) {
+						If ($this->ReadPropertyBoolean("Open") == true) {
+							$this->SetStatus(200);
+							IPS_SetIcon($this->InstanceID, "Alert");
+						}
+						break;
+					}
 					$Status = (IPS_GetInstance($SenderID)['InstanceStatus']);  
 					$this->SendDebug("MessageSink", "Status: ".$Status, 0);
 					If ($Status <> 102) {
@@ -630,7 +637,7 @@
   	private function GetWebfrontPages($WebfrontID)
 	{
     		$PagesArray = array();
-    		If ($WebfrontID > 0) {
+		If (($WebfrontID > 0) AND (IPS_InstanceExists($WebfrontID) == true)) {
 			$config = IPS_GetConfiguration($WebfrontID);
 			$WebfrontData = json_decode($config);
 			If ((is_object($WebfrontData) == false) OR (isset($WebfrontData->Items) == false) OR (is_string($WebfrontData->Items) == false)) {
