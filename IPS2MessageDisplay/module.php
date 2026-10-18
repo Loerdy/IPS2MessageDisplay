@@ -65,7 +65,25 @@ class IPS2MessageDisplay extends IPSModule
 		
 		If ($this->ReadPropertyBoolean("Open") == true) {
 			$MessageData = array();
-			$MessageData = unserialize($this->ReadAttributeString("MessageData"));
+			set_error_handler(function ($severity, $message, $file, $line) {
+				If ($severity == E_WARNING) {
+					throw new ErrorException($message, 0, $severity, $file, $line);
+				}
+				return false;
+			});
+			try {
+				$MessageData = unserialize($this->ReadAttributeString("MessageData"), array("allowed_classes" => false));
+			}
+			catch (ErrorException $Exception) {
+				$MessageData = false;
+			}
+			finally {
+				restore_error_handler();
+			}
+			If (is_array($MessageData) == false) {
+				$this->SendDebug("MessageData", "Gespeicherte Nachrichtendaten sind ungueltig", 0);
+				return;
+			}
 			$this->RenderData($MessageData);
 			$this->SetTimerInterval("AutoRemove", 1000);
 			If ($this->GetStatus() <> 102) {
@@ -97,12 +115,24 @@ class IPS2MessageDisplay extends IPSModule
 	 	// Empfangene Daten von der Device Instanz
 	    	$data = json_decode($JSONString);
 	    	$Result = 0;
+		if ((is_object($data) == false) OR (isset($data->Function) == false) OR (is_string($data->Function) == false)) {
+			return $Result;
+		}
 	 	switch ($data->Function) {
 		    	// Maximale Bewässerungszeit
 			case "Add":
+				if ((isset($data->MessageID, $data->Text, $data->Expires, $data->Removable, $data->Type, $data->Image, $data->WebfrontID, $data->Page) == false)
+					OR (is_int($data->MessageID) == false) OR (is_string($data->Text) == false) OR (is_int($data->Expires) == false)
+					OR (is_bool($data->Removable) == false) OR (is_int($data->Type) == false) OR (is_string($data->Image) == false)
+					OR (is_int($data->WebfrontID) == false) OR (is_string($data->Page) == false)) {
+					break;
+				}
 	 			$this->WorkProcess("Add", $data->MessageID, $data->Text, $data->Expires, $data->Removable, $data->Type, $data->Image, $data->WebfrontID, $data->Page);
 				break;
 			case "Remove":
+				if ((isset($data->MessageID) == false) OR (is_int($data->MessageID) == false)) {
+					break;
+				}
 				$this->WorkProcess("Remove", $data->MessageID, "", 0, false, 0, "", 0, "");		 
 				break;
 		}
@@ -117,7 +147,26 @@ class IPS2MessageDisplay extends IPSModule
 			if (IPS_SemaphoreEnter("WorkProcess", 2000))
 			{
 				$MessageData = array();
-				$MessageData = unserialize($this->ReadAttributeString("MessageData"));
+				set_error_handler(function ($severity, $message, $file, $line) {
+					If ($severity == E_WARNING) {
+						throw new ErrorException($message, 0, $severity, $file, $line);
+					}
+					return false;
+				});
+				try {
+					$MessageData = unserialize($this->ReadAttributeString("MessageData"), array("allowed_classes" => false));
+				}
+				catch (ErrorException $Exception) {
+					$MessageData = false;
+				}
+				finally {
+					restore_error_handler();
+				}
+				If (is_array($MessageData) == false) {
+					IPS_SemaphoreLeave("WorkProcess");
+					$this->SendDebug("MessageData", "Gespeicherte Nachrichtendaten sind ungueltig", 0);
+					return;
+				}
 				switch ($Activity) {
 					case 'Add':
 						$MessageData[$MessageID]["MessageID"] = $MessageID;
@@ -179,10 +228,10 @@ class IPS2MessageDisplay extends IPSModule
 						break;
 				}
 				$this->WriteAttributeString("MessageData", serialize($MessageData));
-			}
-			IPS_SemaphoreLeave("WorkProcess");
-			If ($Activity <> "AutoRemove") {
-				$this->RenderData($MessageData);
+				IPS_SemaphoreLeave("WorkProcess");
+				If ($Activity <> "AutoRemove") {
+					$this->RenderData($MessageData);
+				}
 			}
 		}
 		else {
@@ -225,28 +274,25 @@ class IPS2MessageDisplay extends IPSModule
 	{		
 		If ($this->ReadPropertyBoolean("Open") == true) {
 			$this->SendDebug("ProcessHookData", "Ausfuehrung: ".$_SERVER['HOOK'], 0);
-			switch ($_GET['action']) {
+			If ((isset($_GET['action'], $_GET['MessageID']) == false) OR (is_string($_GET['action']) == false) OR (is_string($_GET['MessageID']) == false)) {
+				$this->SendDebug("ProcessHookData", "Ungueltige WebHook-Parameter!", 0);
+				return;
+			}
+			$Action = $_GET['action'];
+			$MessageID = filter_var($_GET['MessageID'], FILTER_VALIDATE_INT, array("options" => array("min_range" => 1)));
+			If ((($Action <> "remove") AND ($Action <> "switch")) OR ($MessageID === false)) {
+				$this->SendDebug("ProcessHookData", "Ungueltige WebHook-Parameter!", 0);
+				return;
+			}
+			switch ($Action) {
 			    	case 'remove':
-			      		$MessageID = isset($_GET['MessageID']) ? $_GET['MessageID'] : -1;
-			      		if ($MessageID > 0) {
-						$this->WorkProcess("Remove", $MessageID, "", 0, false, 0, "", 0, "");
+					$this->WorkProcess("Remove", $MessageID, "", 0, false, 0, "", 0, "");
 				  		//$this->Remove($MessageID);
-			      		}
-					else {
-						$this->SendDebug("ProcessHookData", "Keine MessageID!", 0);
-					}
 			      		break;
 			    case 'switch':
-			      		$MessageID = isset($_GET['MessageID']) ? $_GET['MessageID'] : -1;
-			      		if ($MessageID > 0) {
-						$this->WorkProcess("Switch", $MessageID, "", 0, false, 0, "", 0, "");
+					$this->WorkProcess("Switch", $MessageID, "", 0, false, 0, "", 0, "");
 				  		//$this->Switch($MessageID);
-			      		}
-					else {
-						$this->SendDebug("ProcessHookData", "Keine MessageID!", 0);
-					}
 			      		break;
-			      break;
 			}
 		}
 	}       
@@ -310,10 +356,10 @@ class IPS2MessageDisplay extends IPSModule
 				if ($ShowTime == true) {
 					$SecondsToday= date('H') * 3600 + date('i') * 60 + date('s');
 					If ($Message['Timestamp'] <= (time() - $SecondsToday)) {
-						$content .= '<td class="lst">'.date("d.m.Y H:i", $Message['Timestamp']).'</td>';
+						$content .= '<td class="lst">'.date("d.m.Y H:i", (int) $Message['Timestamp']).'</td>';
 					}
 					else {
-						$content .= '<td class="lst">'.date("H:i:s", $Message['Timestamp']).'</td>';
+						$content .= '<td class="lst">'.date("H:i:s", (int) $Message['Timestamp']).'</td>';
 					}
 				}
 				$content .= '<td class="mid">'.$Message['Text'].'</td>';
@@ -345,14 +391,17 @@ class IPS2MessageDisplay extends IPSModule
 			SetValueInteger($this->GetIDForIdent("MessageCount"), count($MessageData));
 		}
 		
-		If ((count($MessageData) == 0) AND ($this->ReadPropertyInteger("ActuatorID") > 0)) {
-			If (GetValueBoolean($this->ReadPropertyInteger("ActuatorID")) == true) {
-				SetValueBoolean($this->ReadPropertyInteger("ActuatorID"), false);
+		$ActuatorID = $this->ReadPropertyInteger("ActuatorID");
+		If ((count($MessageData) == 0) AND ($ActuatorID > 0) AND (IPS_VariableExists($ActuatorID) == true)
+			AND (IPS_GetVariable($ActuatorID)['VariableType'] == VARIABLETYPE_BOOLEAN)) {
+			If (GetValueBoolean($ActuatorID) == true) {
+				SetValueBoolean($ActuatorID, false);
 			}
 		}
-		elseif ((count($MessageData) > 0) AND ($this->ReadPropertyInteger("ActuatorID") > 0)) {
-			If (GetValueBoolean($this->ReadPropertyInteger("ActuatorID")) == false) {
-				SetValueBoolean($this->ReadPropertyInteger("ActuatorID"), true);
+		elseif ((count($MessageData) > 0) AND ($ActuatorID > 0) AND (IPS_VariableExists($ActuatorID) == true)
+			AND (IPS_GetVariable($ActuatorID)['VariableType'] == VARIABLETYPE_BOOLEAN)) {
+			If (GetValueBoolean($ActuatorID) == false) {
+				SetValueBoolean($ActuatorID, true);
 			}
 		}
 		
@@ -360,13 +409,16 @@ class IPS2MessageDisplay extends IPSModule
 	
 	private function MessageSort($MessageData, $DataField, $SortOrder) 
 	{
+		${$DataField} = array();
     		if(is_array($MessageData)==true) {
             		foreach ($MessageData as $key => $value) {
-            			if(is_array($value) == true){
-                			foreach ($value as $kk => $vv) {
-                    				${$kk}[$key]  = strtolower( $value[$kk]);
-                			}
-            			}
+				if ((is_array($value) == true) AND (array_key_exists($DataField, $value) == true)
+					AND ((is_int($value[$DataField]) == true) OR (is_float($value[$DataField]) == true))) {
+					${$DataField}[$key] = strtolower($value[$DataField]);
+				}
+				else {
+					${$DataField}[$key] = 0;
+				}
         		}
     		}
     		array_multisort(${$DataField}, $SortOrder, $MessageData);

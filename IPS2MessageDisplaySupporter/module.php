@@ -37,6 +37,7 @@
 		$arrayStatus[] = array("code" => 101, "icon" => "inactive", "caption" => "Instanz wird erstellt"); 
 		$arrayStatus[] = array("code" => 102, "icon" => "active", "caption" => "Instanz ist aktiv");
 		$arrayStatus[] = array("code" => 104, "icon" => "inactive", "caption" => "Instanz ist inaktiv");
+		$arrayStatus[] = array("code" => 200, "icon" => "error", "caption" => "Konfiguriertes Objekt existiert nicht");
 				
 		$arrayElements = array(); 
 		
@@ -212,32 +213,40 @@
             	// Diese Zeile nicht löschen
             	parent::ApplyChanges();
 		
-		If ($this->ReadPropertyInteger("Function") == 0) {
-			// Registrierung für die Änderung der Variablen
-			If ($this->ReadPropertyInteger("VariableID") > 0) {
-				$this->RegisterMessage($this->ReadPropertyInteger("VariableID"), VM_UPDATE);
-			}
-		}
-		elseif ($this->ReadPropertyInteger("Function") == 1) {
-			// Registrierung für die Änderung der Instance
-			If ($this->ReadPropertyInteger("InstanceID") > 0) {
-				$this->RegisterMessage($this->ReadPropertyInteger("InstanceID"), IM_CHANGESTATUS);
-			}
-		}
-		
-		If ($this->ReadPropertyBoolean("Open") == true) {
-			$this->Initialize();
-			If ($this->GetStatus() <> 102) {
-				$this->SetStatus(102);
-			}
-			
-		}
-		else {
+		If ($this->ReadPropertyBoolean("Open") == false) {
 			If ($this->GetStatus() <> 104) {
 				$this->SetStatus(104);
 			}
-			
-		}	
+			IPS_SetIcon($this->InstanceID, "Power");
+			return;
+		}
+
+		If ($this->ReadPropertyInteger("Function") == 0) {
+			// Registrierung für die Änderung der Variablen
+			If (IPS_VariableExists($this->ReadPropertyInteger("VariableID")) == false) {
+				$this->SetStatus(200);
+				IPS_SetIcon($this->InstanceID, "Alert");
+				return;
+			}
+			$this->RegisterMessage($this->ReadPropertyInteger("VariableID"), VM_UPDATE);
+			$this->RegisterMessage($this->ReadPropertyInteger("VariableID"), VM_DELETE);
+		}
+		elseif ($this->ReadPropertyInteger("Function") == 1) {
+			// Registrierung für die Änderung der Instance
+			If (IPS_InstanceExists($this->ReadPropertyInteger("InstanceID")) == false) {
+				$this->SetStatus(200);
+				IPS_SetIcon($this->InstanceID, "Alert");
+				return;
+			}
+			$this->RegisterMessage($this->ReadPropertyInteger("InstanceID"), IM_CHANGESTATUS);
+			$this->RegisterMessage($this->ReadPropertyInteger("InstanceID"), IM_DELETE);
+		}
+		
+		$this->Initialize();
+		If ($this->GetStatus() <> 102) {
+			$this->SetStatus(102);
+		}
+		IPS_SetIcon($this->InstanceID, "Ok");
 	}
 	
 	public function RequestAction($Ident, $Value) 
@@ -317,7 +326,7 @@
 		case "ChangeVariable":
 				$this->SendDebug("RequestAction", "Wert: ".$Value, 0);
 				// Registrierung für die Änderung der Variablen
-				If ($Value > 0) {
+				If (($Value > 0) AND (IPS_VariableExists($Value) == true)) {
 					$this->RegisterMessage($Value, 10603);
 					switch($this->GetVariableType($Value)) {
 						case 0: // Boolean
@@ -366,7 +375,7 @@
 		case "ChangeInstance":
 				$this->SendDebug("RequestAction", "Wert: ".$Value, 0);
 				// Registrierung für die Änderung der Variablen
-				If ($Value > 0) {
+				If (($Value > 0) AND (IPS_InstanceExists($Value) == true)) {
 					$this->RegisterMessage($Value, 10505);
 				}	
 			break;
@@ -438,9 +447,22 @@
 					}
 				}
 				break;
+			case VM_DELETE:
+				If (($this->ReadPropertyBoolean("Open") == true) AND ($SenderID == $this->ReadPropertyInteger("VariableID"))) {
+					$this->SetStatus(200);
+					IPS_SetIcon($this->InstanceID, "Alert");
+				}
+				break;
 			case IM_CHANGESTATUS:
 				$this->SendDebug("MessageSink", "SenderID: ".$SenderID, 0);
 				If ($SenderID == $this->ReadPropertyInteger("InstanceID")) {
+					If (IPS_InstanceExists($SenderID) == false) {
+						If ($this->ReadPropertyBoolean("Open") == true) {
+							$this->SetStatus(200);
+							IPS_SetIcon($this->InstanceID, "Alert");
+						}
+						break;
+					}
 					$Status = (IPS_GetInstance($SenderID)['InstanceStatus']);  
 					$this->SendDebug("MessageSink", "Status: ".$Status, 0);
 					If ($Status <> 102) {
@@ -449,6 +471,12 @@
 					else {
 						$this->Remove();	
 					}
+				}
+				break;
+			case IM_DELETE:
+				If (($this->ReadPropertyBoolean("Open") == true) AND ($SenderID == $this->ReadPropertyInteger("InstanceID"))) {
+					$this->SetStatus(200);
+					IPS_SetIcon($this->InstanceID, "Alert");
 				}
 				break;
 		}
@@ -544,9 +572,14 @@
 				$Page = "";
 			}
 			
-			if (IPS_GetKernelRunlevel() == KR_READY) {
-				$this->SendDataToParent(json_encode(Array("DataID"=> "{4F07F8AF-DDF9-A175-6A16-C960F8040723}", 
-						"Function" => "Add", "MessageID" => $MessageID, "Text" => $Text, "Expires" => $Expires, "Removable" => $Removable, "Type" => $Type, "Image" => $Image, "WebfrontID" => $WebfrontID, "Page" => $Page )));
+			if ((IPS_GetKernelRunlevel() == KR_READY) AND ($this->HasActiveParent() == true)) {
+				$Data = json_encode(Array("DataID"=> "{4F07F8AF-DDF9-A175-6A16-C960F8040723}",
+						"Function" => "Add", "MessageID" => $MessageID, "Text" => $Text, "Expires" => $Expires, "Removable" => $Removable, "Type" => $Type, "Image" => $Image, "WebfrontID" => $WebfrontID, "Page" => $Page ));
+				If ($Data === false) {
+					$this->SendDebug("Add", "JSON-Kodierung fehlgeschlagen: ".json_last_error_msg(), 0);
+					return;
+				}
+				$this->SendDataToParent($Data);
 			}
 		}
 	}
@@ -555,9 +588,14 @@
 	{
 		If ($this->ReadPropertyBoolean("Open") == true) {
 			$MessageID = $this->InstanceID;
-			if (IPS_GetKernelRunlevel() == KR_READY) {
-				$this->SendDataToParent(json_encode(Array("DataID"=> "{4F07F8AF-DDF9-A175-6A16-C960F8040723}", 
-						"Function" => "Remove", "MessageID" => $MessageID )));
+			if ((IPS_GetKernelRunlevel() == KR_READY) AND ($this->HasActiveParent() == true)) {
+				$Data = json_encode(Array("DataID"=> "{4F07F8AF-DDF9-A175-6A16-C960F8040723}",
+						"Function" => "Remove", "MessageID" => $MessageID ));
+				If ($Data === false) {
+					$this->SendDebug("Remove", "JSON-Kodierung fehlgeschlagen: ".json_last_error_msg(), 0);
+					return;
+				}
+				$this->SendDataToParent($Data);
 			}
 		}
 	}    
@@ -599,12 +637,20 @@
   	private function GetWebfrontPages($WebfrontID)
 	{
     		$PagesArray = array();
-    		If ($WebfrontID > 0) {
+		If (($WebfrontID > 0) AND (IPS_InstanceExists($WebfrontID) == true)) {
 			$config = IPS_GetConfiguration($WebfrontID);
 			$WebfrontData = json_decode($config);
+			If ((is_object($WebfrontData) == false) OR (isset($WebfrontData->Items) == false) OR (is_string($WebfrontData->Items) == false)) {
+				return $PagesArray;
+			}
 			$ItemsData = json_decode($WebfrontData->Items);
+			If (is_array($ItemsData) == false) {
+				return $PagesArray;
+			}
 			foreach ($ItemsData as $Value) {
-				$PagesArray[] = $Value->ID;
+				If ((is_object($Value) == true) AND (isset($Value->ID) == true) AND (is_string($Value->ID) == true)) {
+					$PagesArray[] = $Value->ID;
+				}
 			}
 		}
 	return $PagesArray;
