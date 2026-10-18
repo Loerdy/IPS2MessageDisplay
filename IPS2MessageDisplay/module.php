@@ -13,6 +13,7 @@ class IPS2MessageDisplay extends IPSModule
 		$this->RegisterPropertyInteger("Sorting", 3);
 		$this->RegisterPropertyBoolean("ShowTime", false);
 		$this->RegisterPropertyBoolean("ShowIcon", true);
+		$this->RegisterPropertyBoolean("EnableTileView", false);
 		$this->RegisterAttributeString("MessageData", ""); 
 		$this->RegisterPropertyInteger("AutoRemove", 1000);
 		$this->RegisterTimer("AutoRemove", 0, 'IPS2MessageDisplay_AutoRemove($_IPS["TARGET"]);');
@@ -46,6 +47,7 @@ class IPS2MessageDisplay extends IPSModule
 		
 		$arrayElements[] = array("name" => "ShowTime", "type" => "CheckBox",  "caption" => "Uhrzeit anzeigen");
 		$arrayElements[] = array("name" => "ShowIcon", "type" => "CheckBox",  "caption" => "Icon anzeigen");
+		$arrayElements[] = array("name" => "EnableTileView", "type" => "CheckBox", "caption" => "Kachelansicht aktivieren");
 		$arrayElements[] = array("type" => "Label", "caption" => "Boolean-Variable die anzeigt, das Meldungen vorhanden sind");
  		$arrayElements[] = array("type" => "SelectVariable", "name" => "ActuatorID", "caption" => "Anzeige-Variablen ID");
 		
@@ -57,6 +59,11 @@ class IPS2MessageDisplay extends IPSModule
         {
             	// Diese Zeile nicht löschen
             	parent::ApplyChanges();
+		$this->MaintainVariable("TileMessages", "Meldungen Kachel", VARIABLETYPE_STRING, array(
+			"PRESENTATION" => VARIABLE_PRESENTATION_WEB_CONTENT,
+			"HTML_TYPE" => 0,
+			"PADDING" => true
+		), 30, $this->ReadPropertyBoolean("EnableTileView"));
 		
 		if (IPS_GetKernelRunlevel() == KR_READY) {
 			// Webhook einrichten
@@ -387,6 +394,9 @@ class IPS2MessageDisplay extends IPSModule
 	  	If (GetValueString($this->GetIDForIdent("Messages")) <> $content) {
 			SetValueString($this->GetIDForIdent("Messages"), $content);
 		}
+		If ($this->ReadPropertyBoolean("EnableTileView") == true) {
+			$this->RenderTileData($MessageData);
+		}
 		If (GetValueInteger($this->GetIDForIdent("MessageCount")) <> count($MessageData)) {
 			SetValueInteger($this->GetIDForIdent("MessageCount"), count($MessageData));
 		}
@@ -406,6 +416,58 @@ class IPS2MessageDisplay extends IPSModule
 		}
 		
 	}    
+
+	private function RenderTileData($MessageData)
+	{
+		$ShowTime = $this->ReadPropertyBoolean("ShowTime");
+		$content = '<style type="text/css">';
+		$content .= 'html, body { margin: 0; padding: 0; background: transparent; color: inherit; font-family: Arial, sans-serif; font-size: 14px; }';
+		$content .= 'table { width: 100%; border-collapse: collapse; background: rgba(0, 0, 0, 0.12); }';
+		$content .= 'tr { border-bottom: 1px solid rgba(255, 255, 255, 0.12); }';
+		$content .= 'tr:last-child { border-bottom: 0; }';
+		$content .= 'td { padding: 7px 8px; vertical-align: middle; }';
+		$content .= 'td.time { width: 64px; white-space: nowrap; opacity: 0.72; font-size: 12px; }';
+		$content .= 'td.message { text-align: left; overflow-wrap: anywhere; }';
+		$content .= 'td.actions { width: 1%; white-space: nowrap; text-align: right; }';
+		$content .= 'button { margin-left: 5px; padding: 4px 8px; border: 0; border-radius: 4px; color: #fff; background: rgba(100, 100, 100, 0.75); cursor: pointer; font: inherit; font-size: 12px; }';
+		$content .= 'button.switch { background: rgba(230, 140, 30, 0.9); }';
+		$content .= 'button.remove { background: rgba(45, 145, 90, 0.9); }';
+		$content .= 'td.empty { text-align: left; opacity: 0.72; }';
+		$content .= '</style>';
+		$content .= '<table>';
+		If (count($MessageData) == 0) {
+			$content .= '<tr><td class="empty">Keine aktiven Meldungen</td></tr>';
+		}
+		else {
+			foreach ($MessageData as $Message) {
+				$content .= '<tr>';
+				If ($ShowTime == true) {
+					$SecondsToday = date('H') * 3600 + date('i') * 60 + date('s');
+					If ($Message['Timestamp'] <= (time() - $SecondsToday)) {
+						$content .= '<td class="time">'.date("d.m. H:i", (int) $Message['Timestamp']).'</td>';
+					}
+					else {
+						$content .= '<td class="time">'.date("H:i:s", (int) $Message['Timestamp']).'</td>';
+					}
+				}
+				$content .= '<td class="message">'.htmlspecialchars($Message['Text'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8').'</td>';
+				$content .= '<td class="actions">';
+				If ($Message['Page'] <> "") {
+					$content .= '<button type="button" class="switch" onclick="window.xhrGet=function xhrGet(o) {var HTTP = new XMLHttpRequest();HTTP.open(\'GET\',o.url,true);HTTP.send();};window.xhrGet({ url: \'hook/IPS2MessageDisplay_'.$this->InstanceID.'?ts=\' + (new Date()).getTime() + \'&action=switch&MessageID='.(int) $Message['MessageID'].'\' });">WF</button>';
+				}
+				If ($Message['Removable'] == true) {
+					$content .= '<button type="button" class="remove" onclick="window.xhrGet=function xhrGet(o) {var HTTP = new XMLHttpRequest();HTTP.open(\'GET\',o.url,true);HTTP.send();};window.xhrGet({ url: \'hook/IPS2MessageDisplay_'.$this->InstanceID.'?ts=\' + (new Date()).getTime() + \'&action=remove&MessageID='.(int) $Message['MessageID'].'\' });">OK</button>';
+				}
+				$content .= '</td>';
+				$content .= '</tr>';
+			}
+		}
+		$content .= '</table>';
+
+		If (GetValueString($this->GetIDForIdent("TileMessages")) <> $content) {
+			SetValueString($this->GetIDForIdent("TileMessages"), $content);
+		}
+	}
 	
 	private function MessageSort($MessageData, $DataField, $SortOrder) 
 	{
