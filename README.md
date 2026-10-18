@@ -1,6 +1,8 @@
 # IPS2MessageDisplay
 
-**Nachrichtenanzeige für IP-Symcon – weitergepflegter Fork**
+**Nachrichtenanzeige für IP-Symcon – Version 2.0.0 (Fork)**
+
+**Version:** 2.0.0 · **Autor/Hersteller:** Loerdy (Fork) · **Basis:** Originalprojekt von Joey-1970 (Version 1.0)
 
 IPS2MessageDisplay dient zur Anzeige und Verwaltung von Meldungen im IP-Symcon WebFront. Dieses Repository ist ein Fork des von **[Joey-1970](https://github.com/Joey-1970/IPS2MessageDisplay)** entwickelten Projekts.
 
@@ -25,6 +27,7 @@ Das Hauptmodul verwaltet und zeigt Nachrichten an:
 - Entfernen von Nachrichten über WebHook-Aktionen
 - Schaltfunktion für entsprechend konfigurierte Nachrichten
 - Optionale Ansteuerung einer Boolean-Aktorvariable abhängig vom Nachrichtenbestand
+- Optionale zweite String-Variable `TileMessages` für das neue IP-Symcon-Kacheldesign
 
 ### IPS2MessageDisplaySupporter
 
@@ -43,13 +46,25 @@ Das Supporter-Modul überwacht konfigurierte Variablen beziehungsweise Instanzen
 4. Eine Instanz von **IPS2MessageDisplay** erstellen und konfigurieren.
 5. Bei Bedarf Instanzen von **IPS2MessageDisplaySupporter** erstellen und mit der Nachrichtenanzeige verbinden.
 
+### Optionale Kachelansicht (ab Version 2.0.0)
+
+Die bisherige Variable `Messages` mit dem Profil `~HTMLBox` bleibt für das klassische WebFront erhalten. Zusätzlich lässt sich in der Konfiguration des Hauptmoduls über die Boolean-Option `EnableTileView` (Standard: deaktiviert) die Variable `TileMessages` einschalten.
+
+`TileMessages` nutzt die IP-Symcon-Präsentation **Webinhalt** und zeigt die vorhandenen Nachrichten in einer kacheloptimierten HTML-Tabelle an. Die Tabelle nutzt die Kachelbreite; die Nachrichten stehen oben, sodass darunter Platz für weitere Meldungen bleibt. Zeitstempel und Meldungstext werden hell dargestellt, die Zeilen besitzen eine einheitliche Mindesthöhe. Bei leerem Bestand erscheint „Keine aktiven Meldungen“.
+
+Aktionsschaltflächen erscheinen nur bei Nachrichten mit entsprechender Aktion. Bestätigen beziehungsweise Entfernen über die bestehenden WebHooks wurde im Kacheldesign erfolgreich getestet. Die zweite Ansicht verwendet denselben Nachrichtenbestand; es werden keine zusätzlichen Timer, WebHooks oder Nachrichtenspeicher angelegt.
+
+**Einrichtung:** `EnableTileView` aktivieren, die Instanzkonfiguration übernehmen und die neue Variable `TileMessages` in der Kachelvisualisierung einbinden. Die bestehende Variable `Messages` bleibt unverändert.
+
 ### Wechsel vom Originalmodul
 
 Vor einem Wechsel empfiehlt sich eine Sicherung der IP-Symcon-Konfiguration. Bei einem durchgeführten Wechsel vom Originalprojekt auf diesen Fork blieben bestehende Instanzen und Einstellungen erhalten. Das ist keine Garantie für jede Installation; nach dem Wechsel sollten die Nachrichtenanzeige und die Supporter-Instanzen geprüft werden.
 
 ## Kompatibilität und Tests
 
-Die Änderungen wurden in einer Umgebung mit **IP-Symcon 9.1** und **PHP 8.5.8** erprobt. Getestet wurden insbesondere die reguläre Nachrichtenanzeige, das Hinzufügen und Entfernen von Nachrichten, die Sortierung und die Statusanzeige mehrerer Supporter-Instanzen. Dies ist keine vollständige automatisierte Testabdeckung.
+Die Mindestversion ist **IP-Symcon 8.0**, da die optionale Kachelansicht die ab dieser Version verfügbare Variablenpräsentation **Webinhalt** verwendet. Die Änderungen wurden in einer Umgebung mit **IP-Symcon 9.1** und **PHP 8.5.8** erprobt.
+
+Für PHP 8.5 wurden insbesondere UTF-8-, JSON- und `unserialize()`-Verarbeitung, WebHook-Parameter, Float-Zeitstempel sowie Zugriffe auf Variablen und Instanzen abgesichert. Getestet wurden die reguläre Nachrichtenanzeige, das Hinzufügen und Entfernen von Nachrichten, die Sortierung und die Statusanzeige mehrerer Supporter-Instanzen. Dies ist keine vollständige automatisierte Testabdeckung.
 
 ## Statuswerte des Supporter-Moduls
 
@@ -63,7 +78,7 @@ Der Fehlerstatus `200` ist implementiert, wurde aber noch nicht in allen relevan
 
 ## Verbesserungen dieses Forks
 
-Die bisherige Weiterentwicklung konzentriert sich auf Stabilität und PHP-Kompatibilität:
+Die Weiterentwicklung umfasst Stabilität, PHP-Kompatibilität und die zusätzliche Kachelansicht:
 
 - Korrektur einer fehlerhaften UTF-8-Umwandlung
 - Absicherung der Semaphore-Verarbeitung
@@ -75,6 +90,8 @@ Die bisherige Weiterentwicklung konzentriert sich auf Stabilität und PHP-Kompat
 - Existenz- und Typprüfung für Aktorvariablen und überwachte Objekte
 - Vermeidung von Sendeversuchen ohne aktive Parent-Verbindung
 - Explizite Integer-Konvertierung bei der Datumsformatierung
+- Optionale Kachelansicht `TileMessages` mit angepasster Darstellung und vorhandenen Bestätigungsaktionen
+- Aktualisierte Bibliotheks- und Modulmetadaten: `Loerdy (Fork)`
 
 Einzelheiten stehen im [Changelog](CHANGELOG.md).
 
@@ -89,5 +106,6 @@ Fehlerberichte und Vorschläge bitte über die [Issues dieses Forks](https://git
 
 ## Danksagung
 
-**Originalautor:** [Joey-1970](https://github.com/Joey-1970)  
+**Originalautor:** [Joey-1970](https://github.com/Joey-1970)
+
 **Weiterentwicklung dieses Forks:** [Loerdy](https://github.com/Loerdy)

@@ -2,9 +2,15 @@
 
 Dieses Dokument beschreibt die im Fork [Loerdy/IPS2MessageDisplay](https://github.com/Loerdy/IPS2MessageDisplay) vorgenommenen Änderungen gegenüber dem [Originalprojekt von Joey-1970](https://github.com/Joey-1970/IPS2MessageDisplay).
 
-Die Änderungen sind thematisch zusammengefasst. Da hier keine verifizierte Versionsnummer beziehungsweise vollständige Git-Historie vorliegt, wird bewusst keine neue Release-Version oder ein Veröffentlichungsdatum behauptet.
+Die Änderungen sind thematisch zusammengefasst. Version **2.0.0** bezeichnet die geplante neue Hauptversion des Forks gegenüber dem Originalstand 1.0. Ein Veröffentlichungsdatum wird erst bei der tatsächlichen Freigabe ergänzt.
 
-## [Unreleased] – Kompatibilität und Stabilisierung
+## [2.0.0] – Weiterentwicklung des Forks (Freigabe geplant)
+
+### Geändert
+
+- **Mindestversion:** Die erforderliche IP-Symcon-Version wurde wegen der ab Version 8.0 verfügbaren Variablenpräsentation „Webinhalt“ auf 8.0 angehoben.
+- **PHP-Kompatibilität:** Verarbeitung und Typprüfungen wurden für den Betrieb mit PHP 8.5 aktualisiert und unter PHP 8.5.8 getestet.
+- **Autorenkennung:** Bibliothek und Module weisen den Fork als `Loerdy (Fork)` aus; Joey-1970 bleibt als ursprünglicher Entwickler genannt.
 
 ### Behoben
 
@@ -23,11 +29,17 @@ Die Änderungen sind thematisch zusammengefasst. Da hier keine verifizierte Vers
 
 ### Hinzugefügt
 
+- **Optionale Kachelansicht:** Boolean-Property `EnableTileView` (standardmäßig deaktiviert) und zusätzliche String-Variable `TileMessages` mit der Präsentation „Webinhalt“. Die klassische `Messages`-Variable bleibt unverändert.
+- **Kacheloptimiertes Layout:** Volle Tabellenbreite, helle Texte, dezente Zeilenhintergründe, einheitliche Mindestzeilenhöhe, freie Fläche für weitere Nachrichten und heller Hinweis „Keine aktiven Meldungen“.
+- **Bestehende Bedienung:** Aktionsbuttons erscheinen nur bei entsprechenden Nachrichten und verwenden die bisherigen `remove`-/`switch`-WebHooks. Keine zweite Speicherung und keine zusätzlichen Timer oder WebHooks.
+
 - **Supporter-Statusverwaltung:** Status `102` (aktiv), `104` (deaktiviert) und `200` (überwachtes Objekt fehlt/ungültig).
 - **Reaktion auf Löschereignisse:** Behandlung von `VM_DELETE` und `IM_DELETE` für überwachte Objekte.
 - **Statussymbole:** Setzen der gespeicherten Instanzsymbole `Ok`, `Power` und `Alert` entsprechend dem Status.
 
 ### Getestet
+
+- Kachelansicht im neuen IP-Symcon-Design, einschließlich leerem Zustand, Nachrichten mit und ohne Aktionsbutton sowie erfolgreicher Bestätigung einer Nachricht.
 
 - Reguläre Nachrichtenanzeige und Verarbeitung neuer Nachrichten in IP-Symcon 9.1 / PHP 8.5.8.
 - Hinzufügen und Entfernen von Nachrichten, Sortierung und Datumsdarstellung.

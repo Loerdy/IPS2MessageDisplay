@@ -2,7 +2,7 @@
   "id": "{8D668956-7DB5-49FD-B1A2-149149D99CEB}",
   "name": "IPS2MessageDisplay",
   "type": 2,
-  "vendor": "JP-IPS-Modules",
+  "vendor": "Loerdy (Fork)",
   "aliases":
   [
     "IPS2MessageDisplay"

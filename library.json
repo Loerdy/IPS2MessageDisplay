@@ -1,12 +1,12 @@
 {
   "id": "{18CA077B-BA79-54E8-C36E-8D42BC35883C}",
-  "author": "Joachim Päper",
+  "author": "Loerdy (Fork)",
   "name": "IPS2MessageDisplay",
   "url": "www.ip-symcon.de",
   "compatibility": {
-        "version": "5.2"
+        "version": "8.0"
   },
-  "version": "1.0",
+  "version": "2.0",
   "build": 0,
   "date": 0
 }
