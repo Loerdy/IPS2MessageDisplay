@@ -428,11 +428,11 @@ class IPS2MessageDisplay extends IPSModule
 		$content .= 'td { padding: 7px 8px; vertical-align: middle; }';
 		$content .= 'td.time { width: 64px; white-space: nowrap; opacity: 0.72; font-size: 12px; color: #E5E7EB; }';
 		$content .= 'td.message { text-align: left; overflow-wrap: anywhere; color: #E5E7EB; }';
-		$content .= 'td.actions { width: 1%; white-space: nowrap; text-align: right; }';
+		$content .= 'td.actions { width: 1%; height: 36px; box-sizing: border-box; white-space: nowrap; text-align: right; }';
 		$content .= 'button { margin-left: 5px; padding: 4px 8px; border: 0; border-radius: 4px; color: #fff; background: rgba(100, 100, 100, 0.75); cursor: pointer; font: inherit; font-size: 12px; }';
 		$content .= 'button.switch { background: rgba(230, 140, 30, 0.9); }';
 		$content .= 'button.remove { background: rgba(45, 145, 90, 0.9); }';
-		$content .= 'td.empty { text-align: left; opacity: 0.72; }';
+		$content .= 'td.empty { text-align: left; opacity: 0.72; color: #E5E7EB; }';
 		$content .= '</style>';
 		$content .= '<table>';
 		If (count($MessageData) == 0) {
