@@ -179,10 +179,10 @@ class IPS2MessageDisplay extends IPSModule
 						break;
 				}
 				$this->WriteAttributeString("MessageData", serialize($MessageData));
-			}
-			IPS_SemaphoreLeave("WorkProcess");
-			If ($Activity <> "AutoRemove") {
-				$this->RenderData($MessageData);
+				IPS_SemaphoreLeave("WorkProcess");
+				If ($Activity <> "AutoRemove") {
+					$this->RenderData($MessageData);
+				}
 			}
 		}
 		else {
