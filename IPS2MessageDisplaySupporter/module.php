@@ -37,6 +37,7 @@
 		$arrayStatus[] = array("code" => 101, "icon" => "inactive", "caption" => "Instanz wird erstellt"); 
 		$arrayStatus[] = array("code" => 102, "icon" => "active", "caption" => "Instanz ist aktiv");
 		$arrayStatus[] = array("code" => 104, "icon" => "inactive", "caption" => "Instanz ist inaktiv");
+		$arrayStatus[] = array("code" => 200, "icon" => "error", "caption" => "Konfiguriertes Objekt existiert nicht");
 				
 		$arrayElements = array(); 
 		
@@ -212,32 +213,36 @@
             	// Diese Zeile nicht löschen
             	parent::ApplyChanges();
 		
-		If ($this->ReadPropertyInteger("Function") == 0) {
-			// Registrierung für die Änderung der Variablen
-			If ($this->ReadPropertyInteger("VariableID") > 0) {
-				$this->RegisterMessage($this->ReadPropertyInteger("VariableID"), VM_UPDATE);
-			}
-		}
-		elseif ($this->ReadPropertyInteger("Function") == 1) {
-			// Registrierung für die Änderung der Instance
-			If ($this->ReadPropertyInteger("InstanceID") > 0) {
-				$this->RegisterMessage($this->ReadPropertyInteger("InstanceID"), IM_CHANGESTATUS);
-			}
-		}
-		
-		If ($this->ReadPropertyBoolean("Open") == true) {
-			$this->Initialize();
-			If ($this->GetStatus() <> 102) {
-				$this->SetStatus(102);
-			}
-			
-		}
-		else {
+		If ($this->ReadPropertyBoolean("Open") == false) {
 			If ($this->GetStatus() <> 104) {
 				$this->SetStatus(104);
 			}
-			
-		}	
+			return;
+		}
+
+		If ($this->ReadPropertyInteger("Function") == 0) {
+			// Registrierung für die Änderung der Variablen
+			If (IPS_VariableExists($this->ReadPropertyInteger("VariableID")) == false) {
+				$this->SetStatus(200);
+				return;
+			}
+			$this->RegisterMessage($this->ReadPropertyInteger("VariableID"), VM_UPDATE);
+			$this->RegisterMessage($this->ReadPropertyInteger("VariableID"), VM_DELETE);
+		}
+		elseif ($this->ReadPropertyInteger("Function") == 1) {
+			// Registrierung für die Änderung der Instance
+			If (IPS_InstanceExists($this->ReadPropertyInteger("InstanceID")) == false) {
+				$this->SetStatus(200);
+				return;
+			}
+			$this->RegisterMessage($this->ReadPropertyInteger("InstanceID"), IM_CHANGESTATUS);
+			$this->RegisterMessage($this->ReadPropertyInteger("InstanceID"), IM_DELETE);
+		}
+		
+		$this->Initialize();
+		If ($this->GetStatus() <> 102) {
+			$this->SetStatus(102);
+		}
 	}
 	
 	public function RequestAction($Ident, $Value) 
@@ -438,6 +443,11 @@
 					}
 				}
 				break;
+			case VM_DELETE:
+				If (($this->ReadPropertyBoolean("Open") == true) AND ($SenderID == $this->ReadPropertyInteger("VariableID"))) {
+					$this->SetStatus(200);
+				}
+				break;
 			case IM_CHANGESTATUS:
 				$this->SendDebug("MessageSink", "SenderID: ".$SenderID, 0);
 				If ($SenderID == $this->ReadPropertyInteger("InstanceID")) {
@@ -449,6 +459,11 @@
 					else {
 						$this->Remove();	
 					}
+				}
+				break;
+			case IM_DELETE:
+				If (($this->ReadPropertyBoolean("Open") == true) AND ($SenderID == $this->ReadPropertyInteger("InstanceID"))) {
+					$this->SetStatus(200);
 				}
 				break;
 		}
