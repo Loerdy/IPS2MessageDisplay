@@ -623,9 +623,17 @@
     		If ($WebfrontID > 0) {
 			$config = IPS_GetConfiguration($WebfrontID);
 			$WebfrontData = json_decode($config);
+			If ((is_object($WebfrontData) == false) OR (isset($WebfrontData->Items) == false) OR (is_string($WebfrontData->Items) == false)) {
+				return $PagesArray;
+			}
 			$ItemsData = json_decode($WebfrontData->Items);
+			If (is_array($ItemsData) == false) {
+				return $PagesArray;
+			}
 			foreach ($ItemsData as $Value) {
-				$PagesArray[] = $Value->ID;
+				If ((is_object($Value) == true) AND (isset($Value->ID) == true) AND (is_string($Value->ID) == true)) {
+					$PagesArray[] = $Value->ID;
+				}
 			}
 		}
 	return $PagesArray;
