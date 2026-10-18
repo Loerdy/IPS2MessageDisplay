@@ -566,8 +566,13 @@
 			}
 			
 			if ((IPS_GetKernelRunlevel() == KR_READY) AND ($this->HasActiveParent() == true)) {
-				$this->SendDataToParent(json_encode(Array("DataID"=> "{4F07F8AF-DDF9-A175-6A16-C960F8040723}", 
-						"Function" => "Add", "MessageID" => $MessageID, "Text" => $Text, "Expires" => $Expires, "Removable" => $Removable, "Type" => $Type, "Image" => $Image, "WebfrontID" => $WebfrontID, "Page" => $Page )));
+				$Data = json_encode(Array("DataID"=> "{4F07F8AF-DDF9-A175-6A16-C960F8040723}",
+						"Function" => "Add", "MessageID" => $MessageID, "Text" => $Text, "Expires" => $Expires, "Removable" => $Removable, "Type" => $Type, "Image" => $Image, "WebfrontID" => $WebfrontID, "Page" => $Page ));
+				If ($Data === false) {
+					$this->SendDebug("Add", "JSON-Kodierung fehlgeschlagen: ".json_last_error_msg(), 0);
+					return;
+				}
+				$this->SendDataToParent($Data);
 			}
 		}
 	}
@@ -577,8 +582,13 @@
 		If ($this->ReadPropertyBoolean("Open") == true) {
 			$MessageID = $this->InstanceID;
 			if ((IPS_GetKernelRunlevel() == KR_READY) AND ($this->HasActiveParent() == true)) {
-				$this->SendDataToParent(json_encode(Array("DataID"=> "{4F07F8AF-DDF9-A175-6A16-C960F8040723}", 
-						"Function" => "Remove", "MessageID" => $MessageID )));
+				$Data = json_encode(Array("DataID"=> "{4F07F8AF-DDF9-A175-6A16-C960F8040723}",
+						"Function" => "Remove", "MessageID" => $MessageID ));
+				If ($Data === false) {
+					$this->SendDebug("Remove", "JSON-Kodierung fehlgeschlagen: ".json_last_error_msg(), 0);
+					return;
+				}
+				$this->SendDataToParent($Data);
 			}
 		}
 	}    
