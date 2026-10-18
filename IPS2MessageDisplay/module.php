@@ -406,13 +406,16 @@ class IPS2MessageDisplay extends IPSModule
 	
 	private function MessageSort($MessageData, $DataField, $SortOrder) 
 	{
+		${$DataField} = array();
     		if(is_array($MessageData)==true) {
             		foreach ($MessageData as $key => $value) {
-            			if(is_array($value) == true){
-                			foreach ($value as $kk => $vv) {
-                    				${$kk}[$key]  = strtolower( $value[$kk]);
-                			}
-            			}
+				if ((is_array($value) == true) AND (array_key_exists($DataField, $value) == true)
+					AND ((is_int($value[$DataField]) == true) OR (is_float($value[$DataField]) == true))) {
+					${$DataField}[$key] = strtolower($value[$DataField]);
+				}
+				else {
+					${$DataField}[$key] = 0;
+				}
         		}
     		}
     		array_multisort(${$DataField}, $SortOrder, $MessageData);
