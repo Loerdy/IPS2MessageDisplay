@@ -65,7 +65,25 @@ class IPS2MessageDisplay extends IPSModule
 		
 		If ($this->ReadPropertyBoolean("Open") == true) {
 			$MessageData = array();
-			$MessageData = unserialize($this->ReadAttributeString("MessageData"));
+			set_error_handler(function ($severity, $message, $file, $line) {
+				If ($severity == E_WARNING) {
+					throw new ErrorException($message, 0, $severity, $file, $line);
+				}
+				return false;
+			});
+			try {
+				$MessageData = unserialize($this->ReadAttributeString("MessageData"), array("allowed_classes" => false));
+			}
+			catch (ErrorException $Exception) {
+				$MessageData = false;
+			}
+			finally {
+				restore_error_handler();
+			}
+			If (is_array($MessageData) == false) {
+				$this->SendDebug("MessageData", "Gespeicherte Nachrichtendaten sind ungueltig", 0);
+				return;
+			}
 			$this->RenderData($MessageData);
 			$this->SetTimerInterval("AutoRemove", 1000);
 			If ($this->GetStatus() <> 102) {
@@ -129,7 +147,26 @@ class IPS2MessageDisplay extends IPSModule
 			if (IPS_SemaphoreEnter("WorkProcess", 2000))
 			{
 				$MessageData = array();
-				$MessageData = unserialize($this->ReadAttributeString("MessageData"));
+				set_error_handler(function ($severity, $message, $file, $line) {
+					If ($severity == E_WARNING) {
+						throw new ErrorException($message, 0, $severity, $file, $line);
+					}
+					return false;
+				});
+				try {
+					$MessageData = unserialize($this->ReadAttributeString("MessageData"), array("allowed_classes" => false));
+				}
+				catch (ErrorException $Exception) {
+					$MessageData = false;
+				}
+				finally {
+					restore_error_handler();
+				}
+				If (is_array($MessageData) == false) {
+					IPS_SemaphoreLeave("WorkProcess");
+					$this->SendDebug("MessageData", "Gespeicherte Nachrichtendaten sind ungueltig", 0);
+					return;
+				}
 				switch ($Activity) {
 					case 'Add':
 						$MessageData[$MessageID]["MessageID"] = $MessageID;
