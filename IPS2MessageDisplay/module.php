@@ -316,7 +316,7 @@ class IPS2MessageDisplay extends IPSModule
 						$content .= '<td class="lst">'.date("H:i:s", $Message['Timestamp']).'</td>';
 					}
 				}
-				$content .= '<td class="mid">'.utf8_decode($Message['Text']).'</td>';
+				$content .= '<td class="mid">'.$Message['Text'].'</td>';
 				
 				if ($Message['Page'] <> "") {
 					$TypeWF = 'orange';
