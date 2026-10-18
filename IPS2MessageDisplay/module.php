@@ -426,8 +426,8 @@ class IPS2MessageDisplay extends IPSModule
 		$content .= 'tr { border-bottom: 1px solid rgba(255, 255, 255, 0.12); }';
 		$content .= 'tr:last-child { border-bottom: 0; }';
 		$content .= 'td { padding: 7px 8px; vertical-align: middle; }';
-		$content .= 'td.time { width: 64px; white-space: nowrap; opacity: 0.72; font-size: 12px; }';
-		$content .= 'td.message { text-align: left; overflow-wrap: anywhere; }';
+		$content .= 'td.time { width: 64px; white-space: nowrap; opacity: 0.72; font-size: 12px; color: #E5E7EB; }';
+		$content .= 'td.message { text-align: left; overflow-wrap: anywhere; color: #E5E7EB; }';
 		$content .= 'td.actions { width: 1%; white-space: nowrap; text-align: right; }';
 		$content .= 'button { margin-left: 5px; padding: 4px 8px; border: 0; border-radius: 4px; color: #fff; background: rgba(100, 100, 100, 0.75); cursor: pointer; font: inherit; font-size: 12px; }';
 		$content .= 'button.switch { background: rgba(230, 140, 30, 0.9); }';
