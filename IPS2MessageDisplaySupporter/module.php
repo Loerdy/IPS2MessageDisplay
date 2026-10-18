@@ -217,6 +217,7 @@
 			If ($this->GetStatus() <> 104) {
 				$this->SetStatus(104);
 			}
+			IPS_SetIcon($this->InstanceID, "Power");
 			return;
 		}
 
@@ -224,6 +225,7 @@
 			// Registrierung für die Änderung der Variablen
 			If (IPS_VariableExists($this->ReadPropertyInteger("VariableID")) == false) {
 				$this->SetStatus(200);
+				IPS_SetIcon($this->InstanceID, "Alert");
 				return;
 			}
 			$this->RegisterMessage($this->ReadPropertyInteger("VariableID"), VM_UPDATE);
@@ -233,6 +235,7 @@
 			// Registrierung für die Änderung der Instance
 			If (IPS_InstanceExists($this->ReadPropertyInteger("InstanceID")) == false) {
 				$this->SetStatus(200);
+				IPS_SetIcon($this->InstanceID, "Alert");
 				return;
 			}
 			$this->RegisterMessage($this->ReadPropertyInteger("InstanceID"), IM_CHANGESTATUS);
@@ -243,6 +246,7 @@
 		If ($this->GetStatus() <> 102) {
 			$this->SetStatus(102);
 		}
+		IPS_SetIcon($this->InstanceID, "Ok");
 	}
 	
 	public function RequestAction($Ident, $Value) 
@@ -446,6 +450,7 @@
 			case VM_DELETE:
 				If (($this->ReadPropertyBoolean("Open") == true) AND ($SenderID == $this->ReadPropertyInteger("VariableID"))) {
 					$this->SetStatus(200);
+					IPS_SetIcon($this->InstanceID, "Alert");
 				}
 				break;
 			case IM_CHANGESTATUS:
@@ -464,6 +469,7 @@
 			case IM_DELETE:
 				If (($this->ReadPropertyBoolean("Open") == true) AND ($SenderID == $this->ReadPropertyInteger("InstanceID"))) {
 					$this->SetStatus(200);
+					IPS_SetIcon($this->InstanceID, "Alert");
 				}
 				break;
 		}
