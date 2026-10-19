@@ -86,6 +86,7 @@ Die Weiterentwicklung umfasst Stabilität, PHP-Kompatibilität und die zusätzli
 - Schutz vor fehlerhaften serialisierten Nachrichtendaten, ohne diese automatisch zu überschreiben
 - Validierung von WebHook-Parametern
 - Robuste Sortierung bei ungültigen Zeitstempeln
+- Beibehaltung des ursprünglichen Timestamps bei wiederholten `Add`-Aufrufen mit unveränderten Nachrichtendaten
 - Prüfung der WebFront-Konfiguration
 - Existenz- und Typprüfung für Aktorvariablen und überwachte Objekte
 - Vermeidung von Sendeversuchen ohne aktive Parent-Verbindung
