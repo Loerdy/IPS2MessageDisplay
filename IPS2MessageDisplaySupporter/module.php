@@ -191,14 +191,7 @@
 		$ArrayRowLayout[] = array("type" => "Select", "name" => "Page", "caption" => "Seite", "options" => $arrayPages);
 		$arrayElements[] = array("type" => "RowLayout", "items" => $ArrayRowLayout);
 		
-		$arrayElements[] = array("type" => "Label", "caption" => "Auswahl des Icons"); 
-		$IconsArray = array();
-		$IconsArray = $this->GetIconsList();
-		$arrayOptions = array();
-		foreach ($IconsArray as $Value) {
-			$arrayOptions[] = array("caption" => $Value['caption'], "value" => $Value['value']);
-		}
-		$arrayElements[] = array("type" => "Select", "name" => "Image", "caption" => "Icon", "options" => $arrayOptions);
+		$arrayElements[] = array("type" => "SelectIcon", "name" => "Image", "caption" => "Icon");
 
 		
 		$arrayElements[] = array("type" => "Label", "caption" => "_____________________________________________________________________________________________________");
@@ -647,18 +640,6 @@
 			}
 		}
 	return $PagesArray;
-	}
-	    
-	private function GetIconsList()
-	{
-	    	$id = IPS_GetInstanceListByModuleID('{B69010EA-96D5-46DF-B885-24821B8C8DBD}')[0];
-	    	$Icons = array();
-	    	foreach (UC_GetIconList($id) as $Icon) {
-			$Icons[] = ['caption' => $Icon, 'value' => $Icon];
-	    	}
-		sort($Icons);
-            	array_unshift($Icons, ['caption' => 'Standard', 'value' => 'Transparent']);
-	return $Icons;
 	}
 }
 ?>
