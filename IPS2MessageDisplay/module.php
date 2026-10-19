@@ -520,10 +520,10 @@ class IPS2MessageDisplay extends IPSModule
 		$content .= 'td.message { text-align: left; overflow-wrap: anywhere; }';
 		$content .= 'td.actions { width: 1%; height: 36px; box-sizing: border-box; white-space: nowrap; text-align: right; }';
 		$content .= 'button { margin-left: 5px; padding: 4px 8px; border: 0; border-radius: 4px; color: #fff; background: rgba(100, 100, 100, 0.75); cursor: pointer; font: inherit; font-size: 12px; }';
-		$content .= 'button.green { background: rgb(0, 255, 0); }';
-		$content .= 'button.red { background: rgb(255, 0, 0); }';
-		$content .= 'button.yellow { background: rgb(255, 255, 0); }';
-		$content .= 'button.blue { background: rgb(0, 0, 255); }';
+		$content .= 'button.green { color: #FFFFFF; background: #16803C; }';
+		$content .= 'button.red { color: #FFFFFF; background: #DC2626; }';
+		$content .= 'button.yellow { color: #1F2937; background: #FACC15; }';
+		$content .= 'button.blue { color: #FFFFFF; background: #1D4ED8; }';
 		$content .= 'td.empty { text-align: left; opacity: 0.72; }';
 		$content .= '</style>';
 		$content .= '<table>';
