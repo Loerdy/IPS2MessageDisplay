@@ -1,8 +1,8 @@
 # IPS2MessageDisplay
 
-**Nachrichtenanzeige für IP-Symcon – Version 2.0.0 (Fork)**
+**Nachrichtenanzeige für IP-Symcon – Version 2.x.x (Fork)**
 
-**Version:** 2.0.0 · **Autor/Hersteller:** Loerdy (Fork) · **Basis:** Originalprojekt von Joey-1970 (Version 1.0)
+**Version:** 2.x.x · **Autor/Hersteller:** Loerdy (Fork) · **Basis:** Originalprojekt von Joey-1970 (Version 1.0)
 
 IPS2MessageDisplay dient zur Anzeige und Verwaltung von Meldungen im IP-Symcon WebFront. Dieses Repository ist ein Fork des von **[Joey-1970](https://github.com/Joey-1970/IPS2MessageDisplay)** entwickelten Projekts.
 
