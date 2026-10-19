@@ -387,6 +387,8 @@ class IPS2MessageDisplay extends IPSModule
 		$ShowTime = $this->ReadPropertyBoolean("ShowTime");
 		$ShowIcon = $this->ReadPropertyBoolean("ShowIcon");
 		$Sorting = $this->ReadPropertyInteger("Sorting");
+		$TypeImage = array("fa-circle-check", "fa-circle-exclamation", "fa-triangle-exclamation", "fa-clock");
+		$ImageMapping = array("Ok" => "fa-circle-check", "Alert" => "fa-circle-exclamation", "Warning" => "fa-triangle-exclamation", "Clock" => "fa-clock");
 		
 		// Etwas CSS und HTML
 		$style = "";
@@ -403,14 +405,14 @@ class IPS2MessageDisplay extends IPSModule
 		$style .= '.orange { padding: 5px; color: rgb(255, 255, 255); background-color: rgb(255, 160, 0); background-image: linear-gradient(top,rgba(0,0,0,0) 0,rgba(0,0,0,0.3) 50%,rgba(0,0,0,0.3) 100%); background-image: -o-linear-gradient(top,rgba(0,0,0,0) 0,rgba(0,0,0,0.3) 50%,rgba(0,0,0,0.3) 100%); background-image: -moz-linear-gradient(top,rgba(0,0,0,0) 0,rgba(0,0,0,0.3) 50%,rgba(0,0,0,0.3) 100%); background-image: -webkit-linear-gradient(top,rgba(0,0,0,0) 0,rgba(0,0,0,0.3) 50%,rgba(0,0,0,0.3) 100%); background-image: -ms-linear-gradient(top,rgba(0,0,0,0) 0,rgba(0,0,0,0.3) 50%,rgba(0,0,0,0.3) 100%); }';
 		$style .= '</style>';
 
-		$content = $style;
+		$content = '<script src="/icons.js"></script>';
+		$content .= $style;
 		$content .= '<table>';
 		
 		if (count($MessageData) == 0) {
 			$content .= '<tr>';
 			If ($ShowIcon == true) {
-				$Icon = "Ok";
-				$content .= '<td class="iconMediumSpinner ipsIcon' .$Icon. '"></td>';
+				$content .= '<td><i class="fa-light fa-circle-check"></i></td>';
 			}
 			if ($ShowTime == true) {
 				$content .= '<td class="lst">'.date("d.m.Y H:i", time() ).'</td>';
@@ -424,19 +426,21 @@ class IPS2MessageDisplay extends IPSModule
 	    		$MessageData =  $this->MessageSort($MessageData, 'Timestamp',  $Sorting);
 			foreach ($MessageData as $Number => $Message) {
 	      			$TypeColor = array("green", "red", "yellow", "blue");
-				$TypeImage = array("Ok", "Alert", "Warning", "Clock");
 				$Message['Type'] = min(3, max(0, $Message['Type']));
-						
-				if ($Message['Image'] <> "") {
-					$Image = $Message['Image'];
+				$MessageImage = is_string($Message['Image'] ?? null) ? $Message['Image'] : "";
+
+				if (array_key_exists($MessageImage, $ImageMapping)) {
+					$Icon = $ImageMapping[$MessageImage];
+				} elseif (($MessageImage <> "") AND (preg_match('/^[a-z0-9-]+$/', $MessageImage) === 1)) {
+					$Icon = "fa-".$MessageImage;
 				}
 				else {
-					$Image = $TypeImage[$Message['Type']];
+					$Icon = $TypeImage[$Message['Type']];
 				}
 
 				$content .= '<tr>';
 				If ($ShowIcon == true) {
-					$content .= '<td class="iconMediumSpinner ipsIcon' .$Image. '"></td>';
+					$content .= '<td><i class="fa-light '.htmlspecialchars($Icon, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8').'"></i></td>';
 				}
 				if ($ShowTime == true) {
 					$SecondsToday= date('H') * 3600 + date('i') * 60 + date('s');
