@@ -506,6 +506,7 @@ class IPS2MessageDisplay extends IPSModule
 		$ShowIcon = $this->ReadPropertyBoolean("ShowIcon");
 		$TypeImage = array("fa-circle-check", "fa-circle-exclamation", "fa-triangle-exclamation", "fa-clock");
 		$ImageMapping = array("Ok" => "fa-circle-check", "Alert" => "fa-circle-exclamation", "Warning" => "fa-triangle-exclamation", "Clock" => "fa-clock");
+		$TypeColor = array("green", "red", "yellow", "blue");
 		$content = '<script src="/icons.js"></script>';
 		$content .= '<style type="text/css">';
 		$content .= 'html, body { margin: 0; padding: 0; background: transparent; font-family: Arial, sans-serif; font-size: 14px; }';
@@ -518,8 +519,10 @@ class IPS2MessageDisplay extends IPSModule
 		$content .= 'td.message { text-align: left; overflow-wrap: anywhere; }';
 		$content .= 'td.actions { width: 1%; height: 36px; box-sizing: border-box; white-space: nowrap; text-align: right; }';
 		$content .= 'button { margin-left: 5px; padding: 4px 8px; border: 0; border-radius: 4px; color: #fff; background: rgba(100, 100, 100, 0.75); cursor: pointer; font: inherit; font-size: 12px; }';
-		$content .= 'button.switch { background: rgba(230, 140, 30, 0.9); }';
-		$content .= 'button.remove { background: rgba(45, 145, 90, 0.9); }';
+		$content .= 'button.green { background: rgb(0, 255, 0); }';
+		$content .= 'button.red { background: rgb(255, 0, 0); }';
+		$content .= 'button.yellow { background: rgb(255, 255, 0); }';
+		$content .= 'button.blue { background: rgb(0, 0, 255); }';
 		$content .= 'td.empty { text-align: left; opacity: 0.72; }';
 		$content .= '</style>';
 		$content .= '<table>';
@@ -528,9 +531,9 @@ class IPS2MessageDisplay extends IPSModule
 		}
 		else {
 			foreach ($MessageData as $Message) {
+				$MessageType = min(3, max(0, $Message['Type']));
 				$content .= '<tr>';
 				If ($ShowIcon == true) {
-					$MessageType = min(3, max(0, $Message['Type']));
 					if (array_key_exists($Message['Image'], $ImageMapping)) {
 						$Icon = $ImageMapping[$Message['Image']];
 					} elseif (($Message['Image'] <> "") AND (preg_match('/^[a-z0-9-]+$/', $Message['Image']) === 1)) {
@@ -552,10 +555,10 @@ class IPS2MessageDisplay extends IPSModule
 				$content .= '<td class="message">'.htmlspecialchars($Message['Text'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8').'</td>';
 				$content .= '<td class="actions">';
 				If ($Message['Page'] <> "") {
-					$content .= '<button type="button" class="switch" onclick="window.xhrGet=function xhrGet(o) {var HTTP = new XMLHttpRequest();HTTP.open(\'GET\',o.url,true);HTTP.send();};window.xhrGet({ url: \'hook/IPS2MessageDisplay_'.$this->InstanceID.'?ts=\' + (new Date()).getTime() + \'&action=switch&MessageID='.(int) $Message['MessageID'].'\' });">WF</button>';
+					$content .= '<button type="button" class="switch '.$TypeColor[$MessageType].'" onclick="window.xhrGet=function xhrGet(o) {var HTTP = new XMLHttpRequest();HTTP.open(\'GET\',o.url,true);HTTP.send();};window.xhrGet({ url: \'hook/IPS2MessageDisplay_'.$this->InstanceID.'?ts=\' + (new Date()).getTime() + \'&action=switch&MessageID='.(int) $Message['MessageID'].'\' });">WF</button>';
 				}
 				If ($Message['Removable'] == true) {
-					$content .= '<button type="button" class="remove" onclick="window.xhrGet=function xhrGet(o) {var HTTP = new XMLHttpRequest();HTTP.open(\'GET\',o.url,true);HTTP.send();};window.xhrGet({ url: \'hook/IPS2MessageDisplay_'.$this->InstanceID.'?ts=\' + (new Date()).getTime() + \'&action=remove&MessageID='.(int) $Message['MessageID'].'\' });">OK</button>';
+					$content .= '<button type="button" class="remove '.$TypeColor[$MessageType].'" onclick="window.xhrGet=function xhrGet(o) {var HTTP = new XMLHttpRequest();HTTP.open(\'GET\',o.url,true);HTTP.send();};window.xhrGet({ url: \'hook/IPS2MessageDisplay_'.$this->InstanceID.'?ts=\' + (new Date()).getTime() + \'&action=remove&MessageID='.(int) $Message['MessageID'].'\' });">OK</button>';
 				}
 				$content .= '</td>';
 				$content .= '</tr>';
