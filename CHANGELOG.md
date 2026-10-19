@@ -19,9 +19,11 @@ Die Änderungen sind thematisch zusammengefasst. Version **2.0.0** bezeichnet di
 - **Parent-Verbindung:** Nachrichten werden nur bei bereitem Kernel und aktiver Parent-Verbindung an das Hauptmodul gesendet. Dadurch werden Warnungen wie „Cannot find interface for instance“ vermieden.
 - **JSON-Eingang:** `ForwardData()` prüft das dekodierte Objekt, die Aktion und die für `Add` beziehungsweise `Remove` erforderlichen Felder und Typen.
 - **Serialisierte Daten:** Beide `unserialize()`-Pfade prüfen die Rückgabe auf ein Array; PHP-Warnungen bei beschädigten Daten werden gezielt behandelt. Ungültige gespeicherte Daten werden nicht durch eine leere Nachrichtenliste überschrieben.
+- **Persistente Meldungen:** `MessageData` wird in `Create()` nicht mehr bedingungslos geleert. Gespeicherte Meldungen bleiben dadurch nach einem Neustart von IP-Symcon erhalten.
 - **WebHook-Parameter:** `ProcessHookData()` validiert `action` und eine positive ganzzahlige `MessageID`, bevor Aktionen ausgeführt werden.
 - **Sortierung:** `MessageSort()` behandelt fehlende oder ungültige Zeitstempel mit einem Ersatzwert ausschließlich für den Sortierschlüssel; gespeicherte Nachrichten bleiben unverändert.
 - **Zeitstempel bei Aktualisierungen:** Bei einem erneuten `Add`-Aufruf mit derselben `MessageID` und unveränderten Nachrichtendaten bleibt der ursprüngliche Timestamp erhalten. Neue oder tatsächlich geänderte Meldungen erhalten einen neuen Timestamp. Die Korrektur wirkt sich auf die klassische Anzeige und die Kachelansicht aus.
+- **Kernelregistrierung:** Die Registrierung des Supporter-Moduls auf `IPS_KERNELMESSAGE` wurde wiederhergestellt, da `IPS_KERNELSTARTED` beim Neustart unerwünschte Meldungen für Türklingel und Postmelder auslösen konnte.
 - **WebFront-Konfiguration:** JSON-Struktur und Einträge werden geprüft; ungültige Daten ergeben eine leere Seitenliste, ohne gespeicherte Einstellungen zurückzusetzen.
 - **Aktorvariable:** Vor Boolean-Lese- und Schreibzugriffen werden Existenz und Variablentyp geprüft.
 - **JSON-Ausgang:** `Add()` und `Remove()` des Supporter-Moduls prüfen, ob `json_encode()` fehlgeschlagen ist, und senden in diesem Fall keine ungültigen Daten.

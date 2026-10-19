@@ -14,7 +14,7 @@ class IPS2MessageDisplay extends IPSModule
 		$this->RegisterPropertyBoolean("ShowTime", false);
 		$this->RegisterPropertyBoolean("ShowIcon", true);
 		$this->RegisterPropertyBoolean("EnableTileView", false);
-		$this->RegisterAttributeString("MessageData", ""); 
+		$this->RegisterAttributeString("MessageData", serialize(array()));
 		$this->RegisterPropertyInteger("AutoRemove", 1000);
 		$this->RegisterTimer("AutoRemove", 0, 'IPS2MessageDisplay_AutoRemove($_IPS["TARGET"]);');
 		$this->RegisterPropertyInteger("ActuatorID", 0);
@@ -23,9 +23,6 @@ class IPS2MessageDisplay extends IPSModule
 		$this->RegisterVariableString("Messages", "Meldungen", "~HTMLBox", 10);
 		$this->RegisterVariableInteger("MessageCount", "Anzahl", "", 20);
 		
-		$MessageData = array();
-		$this->WriteAttributeString("MessageData", serialize($MessageData)); 
-
         }
  	
 	public function GetConfigurationForm() 
