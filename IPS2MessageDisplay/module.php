@@ -394,6 +394,7 @@ class IPS2MessageDisplay extends IPSModule
 		$style = "";
 		$style .= '<style type="text/css">';
 		$style .= 'table { width:100%; border-collapse: collapse; }';
+		$style .= 'td.icon { border-right: 1px solid rgba(255, 255, 255, 0.2); border-top: 1px solid rgba(255, 255, 255, 0.1); }';
 		$style .= 'td.fst { width: 36px; padding: 2px; border-left: 1px solid rgba(255, 255, 255, 0.2); border-top: 1px solid rgba(255, 255, 255, 0.1); }';
 		$style .= 'td.mid { padding: 2px;  border-top: 1px solid rgba(255, 255, 255, 0.1); }';
 		$style .= 'td.lst { width: 42px; text-align:center; padding: 2px;  border-right: 1px solid rgba(255, 255, 255, 0.2); border-top: 1px solid rgba(255, 255, 255, 0.1); }';
@@ -412,7 +413,7 @@ class IPS2MessageDisplay extends IPSModule
 		if (count($MessageData) == 0) {
 			$content .= '<tr>';
 			If ($ShowIcon == true) {
-				$content .= '<td><i class="fa-light fa-circle-check"></i></td>';
+				$content .= '<td class="icon"><i class="fa-light fa-circle-check"></i></td>';
 			}
 			if ($ShowTime == true) {
 				$content .= '<td class="lst">'.date("d.m.Y H:i", time() ).'</td>';
@@ -440,7 +441,7 @@ class IPS2MessageDisplay extends IPSModule
 
 				$content .= '<tr>';
 				If ($ShowIcon == true) {
-					$content .= '<td><i class="fa-light '.htmlspecialchars($Icon, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8').'"></i></td>';
+					$content .= '<td class="icon"><i class="fa-light '.htmlspecialchars($Icon, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8').'"></i></td>';
 				}
 				if ($ShowTime == true) {
 					$SecondsToday= date('H') * 3600 + date('i') * 60 + date('s');
