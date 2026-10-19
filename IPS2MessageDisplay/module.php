@@ -120,6 +120,15 @@ class IPS2MessageDisplay extends IPSModule
 	    	$data = json_decode($JSONString);
 	    	$Result = 0;
 		if ((is_object($data) == false) OR (isset($data->Function) == false) OR (is_string($data->Function) == false)) {
+			if (is_object($data) == false) {
+				$this->SendDebug("ForwardData", "Nachricht verworfen: ungueltiges JSON oder kein Objekt", 0);
+			}
+			elseif (isset($data->Function) == false) {
+				$this->SendDebug("ForwardData", "Nachricht verworfen: Feld Function fehlt", 0);
+			}
+			else {
+				$this->SendDebug("ForwardData", "Nachricht verworfen: Feld Function muss eine Zeichenkette sein", 0);
+			}
 			return $Result;
 		}
 	 	switch ($data->Function) {
@@ -129,15 +138,72 @@ class IPS2MessageDisplay extends IPSModule
 					OR (is_int($data->MessageID) == false) OR (is_string($data->Text) == false) OR (is_int($data->Expires) == false)
 					OR (is_bool($data->Removable) == false) OR (is_int($data->Type) == false) OR (is_string($data->Image) == false)
 					OR (is_int($data->WebfrontID) == false) OR (is_string($data->Page) == false)) {
+					if (isset($data->MessageID) == false) {
+						$this->SendDebug("ForwardData", "Aktion Add verworfen: Feld MessageID fehlt", 0);
+					}
+					elseif (is_int($data->MessageID) == false) {
+						$this->SendDebug("ForwardData", "Aktion Add verworfen: Feld MessageID muss eine Ganzzahl sein", 0);
+					}
+					elseif (isset($data->Text) == false) {
+						$this->SendDebug("ForwardData", "Aktion Add verworfen: Feld Text fehlt", 0);
+					}
+					elseif (is_string($data->Text) == false) {
+						$this->SendDebug("ForwardData", "Aktion Add verworfen: Feld Text muss eine Zeichenkette sein", 0);
+					}
+					elseif (isset($data->Expires) == false) {
+						$this->SendDebug("ForwardData", "Aktion Add verworfen: Feld Expires fehlt", 0);
+					}
+					elseif (is_int($data->Expires) == false) {
+						$this->SendDebug("ForwardData", "Aktion Add verworfen: Feld Expires muss eine Ganzzahl sein", 0);
+					}
+					elseif (isset($data->Removable) == false) {
+						$this->SendDebug("ForwardData", "Aktion Add verworfen: Feld Removable fehlt", 0);
+					}
+					elseif (is_bool($data->Removable) == false) {
+						$this->SendDebug("ForwardData", "Aktion Add verworfen: Feld Removable muss Boolean sein", 0);
+					}
+					elseif (isset($data->Type) == false) {
+						$this->SendDebug("ForwardData", "Aktion Add verworfen: Feld Type fehlt", 0);
+					}
+					elseif (is_int($data->Type) == false) {
+						$this->SendDebug("ForwardData", "Aktion Add verworfen: Feld Type muss eine Ganzzahl sein", 0);
+					}
+					elseif (isset($data->Image) == false) {
+						$this->SendDebug("ForwardData", "Aktion Add verworfen: Feld Image fehlt", 0);
+					}
+					elseif (is_string($data->Image) == false) {
+						$this->SendDebug("ForwardData", "Aktion Add verworfen: Feld Image muss eine Zeichenkette sein", 0);
+					}
+					elseif (isset($data->WebfrontID) == false) {
+						$this->SendDebug("ForwardData", "Aktion Add verworfen: Feld WebfrontID fehlt", 0);
+					}
+					elseif (is_int($data->WebfrontID) == false) {
+						$this->SendDebug("ForwardData", "Aktion Add verworfen: Feld WebfrontID muss eine Ganzzahl sein", 0);
+					}
+					elseif (isset($data->Page) == false) {
+						$this->SendDebug("ForwardData", "Aktion Add verworfen: Feld Page fehlt", 0);
+					}
+					else {
+						$this->SendDebug("ForwardData", "Aktion Add verworfen: Feld Page muss eine Zeichenkette sein", 0);
+					}
 					break;
 				}
 	 			$this->WorkProcess("Add", $data->MessageID, $data->Text, $data->Expires, $data->Removable, $data->Type, $data->Image, $data->WebfrontID, $data->Page);
 				break;
 			case "Remove":
 				if ((isset($data->MessageID) == false) OR (is_int($data->MessageID) == false)) {
+					if (isset($data->MessageID) == false) {
+						$this->SendDebug("ForwardData", "Aktion Remove verworfen: Feld MessageID fehlt", 0);
+					}
+					else {
+						$this->SendDebug("ForwardData", "Aktion Remove verworfen: Feld MessageID muss eine Ganzzahl sein", 0);
+					}
 					break;
 				}
 				$this->WorkProcess("Remove", $data->MessageID, "", 0, false, 0, "", 0, "");		 
+				break;
+			default:
+				$this->SendDebug("ForwardData", "Nachricht verworfen: unbekannte Aktion ".$data->Function, 0);
 				break;
 		}
 	return $Result;
@@ -147,8 +213,9 @@ class IPS2MessageDisplay extends IPSModule
 	// Beginn der Funktionen
 	private function WorkProcess(string $Activity, int $MessageID, string $Text, int $Expires, bool $Removable, int $Type, string $Image, int $WebfrontID, string $Page) 
 	{
+		$SemaphoreName = "IPS2MessageDisplay_WorkProcess_".$this->InstanceID;
 		If ($this->ReadPropertyBoolean("Open") == true) {
-			if (IPS_SemaphoreEnter("WorkProcess", 2000))
+			if (IPS_SemaphoreEnter($SemaphoreName, 2000))
 			{
 				$MessageData = array();
 				set_error_handler(function ($severity, $message, $file, $line) {
@@ -167,7 +234,7 @@ class IPS2MessageDisplay extends IPSModule
 					restore_error_handler();
 				}
 				If (is_array($MessageData) == false) {
-					IPS_SemaphoreLeave("WorkProcess");
+					IPS_SemaphoreLeave($SemaphoreName);
 					$this->SendDebug("MessageData", "Gespeicherte Nachrichtendaten sind ungueltig", 0);
 					return;
 				}
@@ -246,7 +313,7 @@ class IPS2MessageDisplay extends IPSModule
 						break;
 				}
 				$this->WriteAttributeString("MessageData", serialize($MessageData));
-				IPS_SemaphoreLeave("WorkProcess");
+				IPS_SemaphoreLeave($SemaphoreName);
 				If ($Activity <> "AutoRemove") {
 					$this->RenderData($MessageData);
 				}

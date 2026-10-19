@@ -4,6 +4,14 @@ Dieses Dokument beschreibt die im Fork [Loerdy/IPS2MessageDisplay](https://githu
 
 Die Änderungen sind thematisch zusammengefasst. Version **2.0.0** bezeichnet die neue Hauptversion des Forks gegenüber dem Originalstand 1.0.
 
+## [Unreleased]
+
+### Geändert
+
+- **Debug-Ausgaben:** `ForwardData()` protokolliert verworfene Nachrichten mit Aktion, betroffenem Feld und Fehlergrund, ohne vollständige Nachrichtendaten auszugeben.
+- **Semaphore:** Der Schutz von `WorkProcess()` verwendet einen instanzbezogenen Namen, sodass unabhängige Modulinstanzen einander nicht blockieren.
+- **Instanzicons:** Das Supporter-Modul setzt keine statusabhängigen Instanzicons mehr automatisch; die Statuswerte `102`, `104` und `200` bleiben unverändert.
+
 ## [2.0.0] – Weiterentwicklung des Forks
 
 ### Geändert
