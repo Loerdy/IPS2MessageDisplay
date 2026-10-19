@@ -176,15 +176,29 @@ class IPS2MessageDisplay extends IPSModule
 				}
 				switch ($Activity) {
 					case 'Add':
-						$MessageData[$MessageID]["MessageID"] = $MessageID;
-						$MessageData[$MessageID]["Text"] = $Text;
-						$MessageData[$MessageID]["Expires"] = $Expires;
-						$MessageData[$MessageID]["Removable"] = $Removable;
-						$MessageData[$MessageID]["Type"] = $Type;
-						$MessageData[$MessageID]["Image"] = $Image;
-						$MessageData[$MessageID]["WebfrontID"] = $WebfrontID;
-						$MessageData[$MessageID]["Page"] = $Page;
-						$MessageData[$MessageID]["Timestamp"] = microtime(true);
+						$NewMessageData = array(
+							"MessageID" => $MessageID,
+							"Text" => $Text,
+							"Expires" => $Expires,
+							"Removable" => $Removable,
+							"Type" => $Type,
+							"Image" => $Image,
+							"WebfrontID" => $WebfrontID,
+							"Page" => $Page
+						);
+						$MessageChanged = !array_key_exists($MessageID, $MessageData) || !is_array($MessageData[$MessageID]);
+						if ($MessageChanged == false) {
+							foreach ($NewMessageData as $Field => $Value) {
+								if (!array_key_exists($Field, $MessageData[$MessageID]) || $MessageData[$MessageID][$Field] !== $Value) {
+									$MessageChanged = true;
+									break;
+								}
+							}
+						}
+						if ($MessageChanged) {
+							$NewMessageData["Timestamp"] = microtime(true);
+							$MessageData[$MessageID] = $NewMessageData;
+						}
 						$this->SendDebug("WorkProcess", "Message ".$MessageID." wurde hinzugefuegt", 0);
 						break;
 					case 'Remove':
