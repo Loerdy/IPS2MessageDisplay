@@ -498,12 +498,17 @@ class IPS2MessageDisplay extends IPSModule
 	private function RenderTileData($MessageData)
 	{
 		$ShowTime = $this->ReadPropertyBoolean("ShowTime");
-		$content = '<style type="text/css">';
+		$ShowIcon = $this->ReadPropertyBoolean("ShowIcon");
+		$TypeImage = array("fa-circle-check", "fa-circle-exclamation", "fa-triangle-exclamation", "fa-clock");
+		$ImageMapping = array("Ok" => "fa-circle-check", "Alert" => "fa-circle-exclamation", "Warning" => "fa-triangle-exclamation", "Clock" => "fa-clock");
+		$content = '<script src="/icons.js"></script>';
+		$content .= '<style type="text/css">';
 		$content .= 'html, body { margin: 0; padding: 0; background: transparent; font-family: Arial, sans-serif; font-size: 14px; }';
 		$content .= 'table { width: 100%; border-collapse: collapse; background: transparent; }';
 		$content .= 'tr { border-bottom: 1px solid rgba(255, 255, 255, 0.12); }';
 		$content .= 'tr:last-child { border-bottom: 0; }';
 		$content .= 'td { padding: 7px 8px; vertical-align: middle; }';
+		$content .= 'td.icon { width: 18px; text-align: center; }';
 		$content .= 'td.time { width: 64px; white-space: nowrap; opacity: 0.72; font-size: 12px; }';
 		$content .= 'td.message { text-align: left; overflow-wrap: anywhere; }';
 		$content .= 'td.actions { width: 1%; height: 36px; box-sizing: border-box; white-space: nowrap; text-align: right; }';
@@ -519,6 +524,11 @@ class IPS2MessageDisplay extends IPSModule
 		else {
 			foreach ($MessageData as $Message) {
 				$content .= '<tr>';
+				If ($ShowIcon == true) {
+					$MessageType = min(3, max(0, $Message['Type']));
+					$Icon = array_key_exists($Message['Image'], $ImageMapping) ? $ImageMapping[$Message['Image']] : $TypeImage[$MessageType];
+					$content .= '<td class="icon"><i class="fa-light '.$Icon.'"></i></td>';
+				}
 				If ($ShowTime == true) {
 					$SecondsToday = date('H') * 3600 + date('i') * 60 + date('s');
 					If ($Message['Timestamp'] <= (time() - $SecondsToday)) {
