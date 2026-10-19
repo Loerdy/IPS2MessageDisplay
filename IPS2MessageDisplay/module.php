@@ -509,7 +509,8 @@ class IPS2MessageDisplay extends IPSModule
 		$TypeColor = array("green", "red", "yellow", "blue");
 		$content = '<script src="/icons.js"></script>';
 		$content .= '<style type="text/css">';
-		$content .= 'html, body { margin: 0; padding: 0; background: transparent; font-family: Arial, sans-serif; font-size: 14px; }';
+		$content .= 'html, body { margin: 0; padding: 0; background: transparent; font-family: Arial, sans-serif; font-size: 14px; scrollbar-width: none; }';
+		$content .= 'html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }';
 		$content .= 'table { width: 100%; border-collapse: collapse; background: transparent; }';
 		$content .= 'tr { border-bottom: 1px solid rgba(255, 255, 255, 0.12); }';
 		$content .= 'tr:last-child { border-bottom: 0; }';
