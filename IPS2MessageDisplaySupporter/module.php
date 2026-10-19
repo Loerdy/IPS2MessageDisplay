@@ -191,14 +191,7 @@
 		$ArrayRowLayout[] = array("type" => "Select", "name" => "Page", "caption" => "Seite", "options" => $arrayPages);
 		$arrayElements[] = array("type" => "RowLayout", "items" => $ArrayRowLayout);
 		
-		$arrayElements[] = array("type" => "Label", "caption" => "Auswahl des Icons"); 
-		$IconsArray = array();
-		$IconsArray = $this->GetIconsList();
-		$arrayOptions = array();
-		foreach ($IconsArray as $Value) {
-			$arrayOptions[] = array("caption" => $Value['caption'], "value" => $Value['value']);
-		}
-		$arrayElements[] = array("type" => "Select", "name" => "Image", "caption" => "Icon", "options" => $arrayOptions);
+		$arrayElements[] = array("type" => "SelectIcon", "name" => "Image", "caption" => "Icon");
 
 		
 		$arrayElements[] = array("type" => "Label", "caption" => "_____________________________________________________________________________________________________");
@@ -217,7 +210,6 @@
 			If ($this->GetStatus() <> 104) {
 				$this->SetStatus(104);
 			}
-			IPS_SetIcon($this->InstanceID, "Power");
 			return;
 		}
 
@@ -225,7 +217,6 @@
 			// Registrierung für die Änderung der Variablen
 			If (IPS_VariableExists($this->ReadPropertyInteger("VariableID")) == false) {
 				$this->SetStatus(200);
-				IPS_SetIcon($this->InstanceID, "Alert");
 				return;
 			}
 			$this->RegisterMessage($this->ReadPropertyInteger("VariableID"), VM_UPDATE);
@@ -235,7 +226,6 @@
 			// Registrierung für die Änderung der Instance
 			If (IPS_InstanceExists($this->ReadPropertyInteger("InstanceID")) == false) {
 				$this->SetStatus(200);
-				IPS_SetIcon($this->InstanceID, "Alert");
 				return;
 			}
 			$this->RegisterMessage($this->ReadPropertyInteger("InstanceID"), IM_CHANGESTATUS);
@@ -246,7 +236,6 @@
 		If ($this->GetStatus() <> 102) {
 			$this->SetStatus(102);
 		}
-		IPS_SetIcon($this->InstanceID, "Ok");
 	}
 	
 	public function RequestAction($Ident, $Value) 
@@ -450,7 +439,6 @@
 			case VM_DELETE:
 				If (($this->ReadPropertyBoolean("Open") == true) AND ($SenderID == $this->ReadPropertyInteger("VariableID"))) {
 					$this->SetStatus(200);
-					IPS_SetIcon($this->InstanceID, "Alert");
 				}
 				break;
 			case IM_CHANGESTATUS:
@@ -459,7 +447,6 @@
 					If (IPS_InstanceExists($SenderID) == false) {
 						If ($this->ReadPropertyBoolean("Open") == true) {
 							$this->SetStatus(200);
-							IPS_SetIcon($this->InstanceID, "Alert");
 						}
 						break;
 					}
@@ -476,7 +463,6 @@
 			case IM_DELETE:
 				If (($this->ReadPropertyBoolean("Open") == true) AND ($SenderID == $this->ReadPropertyInteger("InstanceID"))) {
 					$this->SetStatus(200);
-					IPS_SetIcon($this->InstanceID, "Alert");
 				}
 				break;
 		}
@@ -654,18 +640,6 @@
 			}
 		}
 	return $PagesArray;
-	}
-	    
-	private function GetIconsList()
-	{
-	    	$id = IPS_GetInstanceListByModuleID('{B69010EA-96D5-46DF-B885-24821B8C8DBD}')[0];
-	    	$Icons = array();
-	    	foreach (UC_GetIconList($id) as $Icon) {
-			$Icons[] = ['caption' => $Icon, 'value' => $Icon];
-	    	}
-		sort($Icons);
-            	array_unshift($Icons, ['caption' => 'Standard', 'value' => 'Transparent']);
-	return $Icons;
 	}
 }
 ?>

@@ -4,6 +4,28 @@ Dieses Dokument beschreibt die im Fork [Loerdy/IPS2MessageDisplay](https://githu
 
 Die Änderungen sind thematisch zusammengefasst. Version **2.0.0** bezeichnet die neue Hauptversion des Forks gegenüber dem Originalstand 1.0.
 
+## [Unreleased]
+
+## [2.1.0] – Darstellung und Diagnose
+
+### Geändert
+
+- **Debug-Ausgaben:** `ForwardData()` protokolliert verworfene Nachrichten mit Aktion, betroffenem Feld und Fehlergrund, ohne vollständige Nachrichtendaten auszugeben.
+- **Semaphore:** Der Schutz von `WorkProcess()` verwendet einen instanzbezogenen Namen, sodass unabhängige Modulinstanzen einander nicht blockieren.
+- **Instanzicons:** Das Supporter-Modul setzt keine statusabhängigen Instanzicons mehr automatisch; die Statuswerte `102`, `104` und `200` bleiben unverändert.
+- **Native Iconauswahl:** Die bisherige Iconliste im Supporter wurde durch die native IP-Symcon-Auswahl `SelectIcon` ersetzt.
+- **Theme-Darstellung:** Die Kachelansicht verwendet einen transparenten Hintergrund und verzichtet auf feste Textfarben, damit die Darstellung des gewählten hellen oder dunklen Themes übernommen werden kann.
+- **Buttonfarben:** `OK`- und `WF`-Buttons verwenden abhängig vom Nachrichtentyp kontrastoptimierte Farben für Information, Warnung, Aufgabe und Alarm.
+
+### Hinzugefügt
+
+- **Font-Awesome-Icons:** Klassische HTMLBox und Kachelansicht binden `/icons.js` ein und stellen native IP-Symcon-Iconnamen mit Font Awesome dar. Die bisherigen Namen `Ok`, `Alert`, `Warning` und `Clock` bleiben über eine Zuordnung kompatibel.
+
+### Behoben
+
+- **Tabellenlinien:** Die Icon-Spalte der klassischen HTMLBox besitzt wieder die fehlende Trennlinie zur Uhrzeit-Spalte.
+- **Kachel-Scrollbalken:** Der sichtbare Scrollbalken wird in Firefox und Chromium-basierten Browsern ausgeblendet, ohne das vertikale Scrollen zu deaktivieren.
+
 ## [2.0.0] – Weiterentwicklung des Forks
 
 ### Geändert

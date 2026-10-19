@@ -120,6 +120,15 @@ class IPS2MessageDisplay extends IPSModule
 	    	$data = json_decode($JSONString);
 	    	$Result = 0;
 		if ((is_object($data) == false) OR (isset($data->Function) == false) OR (is_string($data->Function) == false)) {
+			if (is_object($data) == false) {
+				$this->SendDebug("ForwardData", "Nachricht verworfen: ungueltiges JSON oder kein Objekt", 0);
+			}
+			elseif (isset($data->Function) == false) {
+				$this->SendDebug("ForwardData", "Nachricht verworfen: Feld Function fehlt", 0);
+			}
+			else {
+				$this->SendDebug("ForwardData", "Nachricht verworfen: Feld Function muss eine Zeichenkette sein", 0);
+			}
 			return $Result;
 		}
 	 	switch ($data->Function) {
@@ -129,15 +138,72 @@ class IPS2MessageDisplay extends IPSModule
 					OR (is_int($data->MessageID) == false) OR (is_string($data->Text) == false) OR (is_int($data->Expires) == false)
 					OR (is_bool($data->Removable) == false) OR (is_int($data->Type) == false) OR (is_string($data->Image) == false)
 					OR (is_int($data->WebfrontID) == false) OR (is_string($data->Page) == false)) {
+					if (isset($data->MessageID) == false) {
+						$this->SendDebug("ForwardData", "Aktion Add verworfen: Feld MessageID fehlt", 0);
+					}
+					elseif (is_int($data->MessageID) == false) {
+						$this->SendDebug("ForwardData", "Aktion Add verworfen: Feld MessageID muss eine Ganzzahl sein", 0);
+					}
+					elseif (isset($data->Text) == false) {
+						$this->SendDebug("ForwardData", "Aktion Add verworfen: Feld Text fehlt", 0);
+					}
+					elseif (is_string($data->Text) == false) {
+						$this->SendDebug("ForwardData", "Aktion Add verworfen: Feld Text muss eine Zeichenkette sein", 0);
+					}
+					elseif (isset($data->Expires) == false) {
+						$this->SendDebug("ForwardData", "Aktion Add verworfen: Feld Expires fehlt", 0);
+					}
+					elseif (is_int($data->Expires) == false) {
+						$this->SendDebug("ForwardData", "Aktion Add verworfen: Feld Expires muss eine Ganzzahl sein", 0);
+					}
+					elseif (isset($data->Removable) == false) {
+						$this->SendDebug("ForwardData", "Aktion Add verworfen: Feld Removable fehlt", 0);
+					}
+					elseif (is_bool($data->Removable) == false) {
+						$this->SendDebug("ForwardData", "Aktion Add verworfen: Feld Removable muss Boolean sein", 0);
+					}
+					elseif (isset($data->Type) == false) {
+						$this->SendDebug("ForwardData", "Aktion Add verworfen: Feld Type fehlt", 0);
+					}
+					elseif (is_int($data->Type) == false) {
+						$this->SendDebug("ForwardData", "Aktion Add verworfen: Feld Type muss eine Ganzzahl sein", 0);
+					}
+					elseif (isset($data->Image) == false) {
+						$this->SendDebug("ForwardData", "Aktion Add verworfen: Feld Image fehlt", 0);
+					}
+					elseif (is_string($data->Image) == false) {
+						$this->SendDebug("ForwardData", "Aktion Add verworfen: Feld Image muss eine Zeichenkette sein", 0);
+					}
+					elseif (isset($data->WebfrontID) == false) {
+						$this->SendDebug("ForwardData", "Aktion Add verworfen: Feld WebfrontID fehlt", 0);
+					}
+					elseif (is_int($data->WebfrontID) == false) {
+						$this->SendDebug("ForwardData", "Aktion Add verworfen: Feld WebfrontID muss eine Ganzzahl sein", 0);
+					}
+					elseif (isset($data->Page) == false) {
+						$this->SendDebug("ForwardData", "Aktion Add verworfen: Feld Page fehlt", 0);
+					}
+					else {
+						$this->SendDebug("ForwardData", "Aktion Add verworfen: Feld Page muss eine Zeichenkette sein", 0);
+					}
 					break;
 				}
 	 			$this->WorkProcess("Add", $data->MessageID, $data->Text, $data->Expires, $data->Removable, $data->Type, $data->Image, $data->WebfrontID, $data->Page);
 				break;
 			case "Remove":
 				if ((isset($data->MessageID) == false) OR (is_int($data->MessageID) == false)) {
+					if (isset($data->MessageID) == false) {
+						$this->SendDebug("ForwardData", "Aktion Remove verworfen: Feld MessageID fehlt", 0);
+					}
+					else {
+						$this->SendDebug("ForwardData", "Aktion Remove verworfen: Feld MessageID muss eine Ganzzahl sein", 0);
+					}
 					break;
 				}
 				$this->WorkProcess("Remove", $data->MessageID, "", 0, false, 0, "", 0, "");		 
+				break;
+			default:
+				$this->SendDebug("ForwardData", "Nachricht verworfen: unbekannte Aktion ".$data->Function, 0);
 				break;
 		}
 	return $Result;
@@ -147,8 +213,9 @@ class IPS2MessageDisplay extends IPSModule
 	// Beginn der Funktionen
 	private function WorkProcess(string $Activity, int $MessageID, string $Text, int $Expires, bool $Removable, int $Type, string $Image, int $WebfrontID, string $Page) 
 	{
+		$SemaphoreName = "IPS2MessageDisplay_WorkProcess_".$this->InstanceID;
 		If ($this->ReadPropertyBoolean("Open") == true) {
-			if (IPS_SemaphoreEnter("WorkProcess", 2000))
+			if (IPS_SemaphoreEnter($SemaphoreName, 2000))
 			{
 				$MessageData = array();
 				set_error_handler(function ($severity, $message, $file, $line) {
@@ -167,7 +234,7 @@ class IPS2MessageDisplay extends IPSModule
 					restore_error_handler();
 				}
 				If (is_array($MessageData) == false) {
-					IPS_SemaphoreLeave("WorkProcess");
+					IPS_SemaphoreLeave($SemaphoreName);
 					$this->SendDebug("MessageData", "Gespeicherte Nachrichtendaten sind ungueltig", 0);
 					return;
 				}
@@ -246,7 +313,7 @@ class IPS2MessageDisplay extends IPSModule
 						break;
 				}
 				$this->WriteAttributeString("MessageData", serialize($MessageData));
-				IPS_SemaphoreLeave("WorkProcess");
+				IPS_SemaphoreLeave($SemaphoreName);
 				If ($Activity <> "AutoRemove") {
 					$this->RenderData($MessageData);
 				}
@@ -320,11 +387,14 @@ class IPS2MessageDisplay extends IPSModule
 		$ShowTime = $this->ReadPropertyBoolean("ShowTime");
 		$ShowIcon = $this->ReadPropertyBoolean("ShowIcon");
 		$Sorting = $this->ReadPropertyInteger("Sorting");
+		$TypeImage = array("fa-circle-check", "fa-circle-exclamation", "fa-triangle-exclamation", "fa-clock");
+		$ImageMapping = array("Ok" => "fa-circle-check", "Alert" => "fa-circle-exclamation", "Warning" => "fa-triangle-exclamation", "Clock" => "fa-clock");
 		
 		// Etwas CSS und HTML
 		$style = "";
 		$style .= '<style type="text/css">';
 		$style .= 'table { width:100%; border-collapse: collapse; }';
+		$style .= 'td.icon { border-right: 1px solid rgba(255, 255, 255, 0.2); border-top: 1px solid rgba(255, 255, 255, 0.1); }';
 		$style .= 'td.fst { width: 36px; padding: 2px; border-left: 1px solid rgba(255, 255, 255, 0.2); border-top: 1px solid rgba(255, 255, 255, 0.1); }';
 		$style .= 'td.mid { padding: 2px;  border-top: 1px solid rgba(255, 255, 255, 0.1); }';
 		$style .= 'td.lst { width: 42px; text-align:center; padding: 2px;  border-right: 1px solid rgba(255, 255, 255, 0.2); border-top: 1px solid rgba(255, 255, 255, 0.1); }';
@@ -336,14 +406,14 @@ class IPS2MessageDisplay extends IPSModule
 		$style .= '.orange { padding: 5px; color: rgb(255, 255, 255); background-color: rgb(255, 160, 0); background-image: linear-gradient(top,rgba(0,0,0,0) 0,rgba(0,0,0,0.3) 50%,rgba(0,0,0,0.3) 100%); background-image: -o-linear-gradient(top,rgba(0,0,0,0) 0,rgba(0,0,0,0.3) 50%,rgba(0,0,0,0.3) 100%); background-image: -moz-linear-gradient(top,rgba(0,0,0,0) 0,rgba(0,0,0,0.3) 50%,rgba(0,0,0,0.3) 100%); background-image: -webkit-linear-gradient(top,rgba(0,0,0,0) 0,rgba(0,0,0,0.3) 50%,rgba(0,0,0,0.3) 100%); background-image: -ms-linear-gradient(top,rgba(0,0,0,0) 0,rgba(0,0,0,0.3) 50%,rgba(0,0,0,0.3) 100%); }';
 		$style .= '</style>';
 
-		$content = $style;
+		$content = '<script src="/icons.js"></script>';
+		$content .= $style;
 		$content .= '<table>';
 		
 		if (count($MessageData) == 0) {
 			$content .= '<tr>';
 			If ($ShowIcon == true) {
-				$Icon = "Ok";
-				$content .= '<td class="iconMediumSpinner ipsIcon' .$Icon. '"></td>';
+				$content .= '<td class="icon"><i class="fa-light fa-circle-check"></i></td>';
 			}
 			if ($ShowTime == true) {
 				$content .= '<td class="lst">'.date("d.m.Y H:i", time() ).'</td>';
@@ -357,19 +427,21 @@ class IPS2MessageDisplay extends IPSModule
 	    		$MessageData =  $this->MessageSort($MessageData, 'Timestamp',  $Sorting);
 			foreach ($MessageData as $Number => $Message) {
 	      			$TypeColor = array("green", "red", "yellow", "blue");
-				$TypeImage = array("Ok", "Alert", "Warning", "Clock");
 				$Message['Type'] = min(3, max(0, $Message['Type']));
-						
-				if ($Message['Image'] <> "") {
-					$Image = $Message['Image'];
+				$MessageImage = is_string($Message['Image'] ?? null) ? $Message['Image'] : "";
+
+				if (array_key_exists($MessageImage, $ImageMapping)) {
+					$Icon = $ImageMapping[$MessageImage];
+				} elseif (($MessageImage <> "") AND (preg_match('/^[a-z0-9-]+$/', $MessageImage) === 1)) {
+					$Icon = "fa-".$MessageImage;
 				}
 				else {
-					$Image = $TypeImage[$Message['Type']];
+					$Icon = $TypeImage[$Message['Type']];
 				}
 
 				$content .= '<tr>';
 				If ($ShowIcon == true) {
-					$content .= '<td class="iconMediumSpinner ipsIcon' .$Image. '"></td>';
+					$content .= '<td class="icon"><i class="fa-light '.htmlspecialchars($Icon, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8').'"></i></td>';
 				}
 				if ($ShowTime == true) {
 					$SecondsToday= date('H') * 3600 + date('i') * 60 + date('s');
@@ -431,19 +503,28 @@ class IPS2MessageDisplay extends IPSModule
 	private function RenderTileData($MessageData)
 	{
 		$ShowTime = $this->ReadPropertyBoolean("ShowTime");
-		$content = '<style type="text/css">';
-		$content .= 'html, body { margin: 0; padding: 0; background: transparent; color: inherit; font-family: Arial, sans-serif; font-size: 14px; }';
-		$content .= 'table { width: 100%; border-collapse: collapse; background: rgba(0, 0, 0, 0.12); }';
+		$ShowIcon = $this->ReadPropertyBoolean("ShowIcon");
+		$TypeImage = array("fa-circle-check", "fa-circle-exclamation", "fa-triangle-exclamation", "fa-clock");
+		$ImageMapping = array("Ok" => "fa-circle-check", "Alert" => "fa-circle-exclamation", "Warning" => "fa-triangle-exclamation", "Clock" => "fa-clock");
+		$TypeColor = array("green", "red", "yellow", "blue");
+		$content = '<script src="/icons.js"></script>';
+		$content .= '<style type="text/css">';
+		$content .= 'html, body { margin: 0; padding: 0; background: transparent; font-family: Arial, sans-serif; font-size: 14px; scrollbar-width: none; }';
+		$content .= 'html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }';
+		$content .= 'table { width: 100%; border-collapse: collapse; background: transparent; }';
 		$content .= 'tr { border-bottom: 1px solid rgba(255, 255, 255, 0.12); }';
 		$content .= 'tr:last-child { border-bottom: 0; }';
 		$content .= 'td { padding: 7px 8px; vertical-align: middle; }';
-		$content .= 'td.time { width: 64px; white-space: nowrap; opacity: 0.72; font-size: 12px; color: #E5E7EB; }';
-		$content .= 'td.message { text-align: left; overflow-wrap: anywhere; color: #E5E7EB; }';
+		$content .= 'td.icon { width: 18px; text-align: center; }';
+		$content .= 'td.time { width: 64px; white-space: nowrap; opacity: 0.72; font-size: 12px; }';
+		$content .= 'td.message { text-align: left; overflow-wrap: anywhere; }';
 		$content .= 'td.actions { width: 1%; height: 36px; box-sizing: border-box; white-space: nowrap; text-align: right; }';
 		$content .= 'button { margin-left: 5px; padding: 4px 8px; border: 0; border-radius: 4px; color: #fff; background: rgba(100, 100, 100, 0.75); cursor: pointer; font: inherit; font-size: 12px; }';
-		$content .= 'button.switch { background: rgba(230, 140, 30, 0.9); }';
-		$content .= 'button.remove { background: rgba(45, 145, 90, 0.9); }';
-		$content .= 'td.empty { text-align: left; opacity: 0.72; color: #E5E7EB; }';
+		$content .= 'button.green { color: #FFFFFF; background: #16803C; }';
+		$content .= 'button.red { color: #FFFFFF; background: #DC2626; }';
+		$content .= 'button.yellow { color: #1F2937; background: #FACC15; }';
+		$content .= 'button.blue { color: #FFFFFF; background: #1D4ED8; }';
+		$content .= 'td.empty { text-align: left; opacity: 0.72; }';
 		$content .= '</style>';
 		$content .= '<table>';
 		If (count($MessageData) == 0) {
@@ -451,7 +532,18 @@ class IPS2MessageDisplay extends IPSModule
 		}
 		else {
 			foreach ($MessageData as $Message) {
+				$MessageType = min(3, max(0, $Message['Type']));
 				$content .= '<tr>';
+				If ($ShowIcon == true) {
+					if (array_key_exists($Message['Image'], $ImageMapping)) {
+						$Icon = $ImageMapping[$Message['Image']];
+					} elseif (($Message['Image'] <> "") AND (preg_match('/^[a-z0-9-]+$/', $Message['Image']) === 1)) {
+						$Icon = "fa-".$Message['Image'];
+					} else {
+						$Icon = $TypeImage[$MessageType];
+					}
+					$content .= '<td class="icon"><i class="fa-light '.htmlspecialchars($Icon, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8').'"></i></td>';
+				}
 				If ($ShowTime == true) {
 					$SecondsToday = date('H') * 3600 + date('i') * 60 + date('s');
 					If ($Message['Timestamp'] <= (time() - $SecondsToday)) {
@@ -464,10 +556,10 @@ class IPS2MessageDisplay extends IPSModule
 				$content .= '<td class="message">'.htmlspecialchars($Message['Text'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8').'</td>';
 				$content .= '<td class="actions">';
 				If ($Message['Page'] <> "") {
-					$content .= '<button type="button" class="switch" onclick="window.xhrGet=function xhrGet(o) {var HTTP = new XMLHttpRequest();HTTP.open(\'GET\',o.url,true);HTTP.send();};window.xhrGet({ url: \'hook/IPS2MessageDisplay_'.$this->InstanceID.'?ts=\' + (new Date()).getTime() + \'&action=switch&MessageID='.(int) $Message['MessageID'].'\' });">WF</button>';
+					$content .= '<button type="button" class="switch '.$TypeColor[$MessageType].'" onclick="window.xhrGet=function xhrGet(o) {var HTTP = new XMLHttpRequest();HTTP.open(\'GET\',o.url,true);HTTP.send();};window.xhrGet({ url: \'hook/IPS2MessageDisplay_'.$this->InstanceID.'?ts=\' + (new Date()).getTime() + \'&action=switch&MessageID='.(int) $Message['MessageID'].'\' });">WF</button>';
 				}
 				If ($Message['Removable'] == true) {
-					$content .= '<button type="button" class="remove" onclick="window.xhrGet=function xhrGet(o) {var HTTP = new XMLHttpRequest();HTTP.open(\'GET\',o.url,true);HTTP.send();};window.xhrGet({ url: \'hook/IPS2MessageDisplay_'.$this->InstanceID.'?ts=\' + (new Date()).getTime() + \'&action=remove&MessageID='.(int) $Message['MessageID'].'\' });">OK</button>';
+					$content .= '<button type="button" class="remove '.$TypeColor[$MessageType].'" onclick="window.xhrGet=function xhrGet(o) {var HTTP = new XMLHttpRequest();HTTP.open(\'GET\',o.url,true);HTTP.send();};window.xhrGet({ url: \'hook/IPS2MessageDisplay_'.$this->InstanceID.'?ts=\' + (new Date()).getTime() + \'&action=remove&MessageID='.(int) $Message['MessageID'].'\' });">OK</button>';
 				}
 				$content .= '</td>';
 				$content .= '</tr>';
