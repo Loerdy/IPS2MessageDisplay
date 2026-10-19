@@ -308,9 +308,9 @@ class IPS2MessageDisplay extends IPSModule
 					$this->RenderData($MessageData);
 				}
 			}
-		}
-		else {
-			$this->SendDebug("WorkProcess", "Semaphore Abbruch!", 0);
+			else {
+				$this->SendDebug("WorkProcess", "Semaphore Abbruch!", 0);
+			}
 		}
 	}
 
@@ -320,11 +320,11 @@ class IPS2MessageDisplay extends IPSModule
 		try {
 			$MessageData = json_decode($RawMessageData, true, 512, JSON_THROW_ON_ERROR);
 			If (is_array($MessageData) == false) {
-				$this->SendDebug("MessageData", "Gespeicherte JSON-Nachrichtendaten sind kein Array", 0);
+				$this->ReportMessageDataReadError("Gespeicherte JSON-Nachrichtendaten sind kein Array");
 				return false;
 			}
 			If ($this->ValidateMessageData($MessageData) == false) {
-				$this->SendDebug("MessageData", "Gespeicherte JSON-Nachrichtendaten haben eine ungueltige Struktur", 0);
+				$this->ReportMessageDataReadError("Gespeicherte JSON-Nachrichtendaten haben eine ungueltige Struktur");
 				return false;
 			}
 			return $MessageData;
@@ -345,15 +345,21 @@ class IPS2MessageDisplay extends IPSModule
 			restore_error_handler();
 		}
 		If ((is_array($MessageData) == false) OR ($this->ValidateMessageData($MessageData) == false)) {
-			$this->SendDebug("MessageData", "Gespeicherte Nachrichtendaten sind weder gueltiges JSON noch gueltige Legacy-Daten", 0);
+			$this->ReportMessageDataReadError("Gespeicherte Nachrichtendaten sind weder gueltiges JSON noch gueltige Legacy-Daten");
 			return false;
 		}
 		If ($this->WriteMessageData($MessageData) == false) {
-			$this->SendDebug("MessageData", "Migration der Legacy-Nachrichtendaten ist fehlgeschlagen", 0);
+			$this->ReportMessageDataReadError("Migration der Legacy-Nachrichtendaten ist fehlgeschlagen");
 			return false;
 		}
 		$this->SendDebug("MessageData", "Legacy-Nachrichtendaten wurden erfolgreich nach JSON migriert", 0);
 		return $MessageData;
+	}
+
+	private function ReportMessageDataReadError($DebugMessage)
+	{
+		$this->SendDebug("MessageData", $DebugMessage, 0);
+		$this->LogMessage("Gespeicherte Nachrichtendaten konnten nicht gelesen oder migriert werden und wurden nicht veraendert.", KL_ERROR);
 	}
 
 	private function WriteMessageData($MessageData)
