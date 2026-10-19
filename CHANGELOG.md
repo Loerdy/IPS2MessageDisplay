@@ -2,9 +2,9 @@
 
 Dieses Dokument beschreibt die im Fork [Loerdy/IPS2MessageDisplay](https://github.com/Loerdy/IPS2MessageDisplay) vorgenommenen Änderungen gegenüber dem [Originalprojekt von Joey-1970](https://github.com/Joey-1970/IPS2MessageDisplay).
 
-Die Änderungen sind thematisch zusammengefasst. Version **2.0.0** bezeichnet die geplante neue Hauptversion des Forks gegenüber dem Originalstand 1.0. Ein Veröffentlichungsdatum wird erst bei der tatsächlichen Freigabe ergänzt.
+Die Änderungen sind thematisch zusammengefasst. Version **2.0.0** bezeichnet die neue Hauptversion des Forks gegenüber dem Originalstand 1.0.
 
-## [2.0.0] – Weiterentwicklung des Forks (Freigabe geplant)
+## [2.0.0] – Weiterentwicklung des Forks
 
 ### Geändert
 
@@ -21,6 +21,7 @@ Die Änderungen sind thematisch zusammengefasst. Version **2.0.0** bezeichnet di
 - **Serialisierte Daten:** Beide `unserialize()`-Pfade prüfen die Rückgabe auf ein Array; PHP-Warnungen bei beschädigten Daten werden gezielt behandelt. Ungültige gespeicherte Daten werden nicht durch eine leere Nachrichtenliste überschrieben.
 - **WebHook-Parameter:** `ProcessHookData()` validiert `action` und eine positive ganzzahlige `MessageID`, bevor Aktionen ausgeführt werden.
 - **Sortierung:** `MessageSort()` behandelt fehlende oder ungültige Zeitstempel mit einem Ersatzwert ausschließlich für den Sortierschlüssel; gespeicherte Nachrichten bleiben unverändert.
+- **Zeitstempel bei Aktualisierungen:** Bei einem erneuten `Add`-Aufruf mit derselben `MessageID` und unveränderten Nachrichtendaten bleibt der ursprüngliche Timestamp erhalten. Neue oder tatsächlich geänderte Meldungen erhalten einen neuen Timestamp. Die Korrektur wirkt sich auf die klassische Anzeige und die Kachelansicht aus.
 - **WebFront-Konfiguration:** JSON-Struktur und Einträge werden geprüft; ungültige Daten ergeben eine leere Seitenliste, ohne gespeicherte Einstellungen zurückzusetzen.
 - **Aktorvariable:** Vor Boolean-Lese- und Schreibzugriffen werden Existenz und Variablentyp geprüft.
 - **JSON-Ausgang:** `Add()` und `Remove()` des Supporter-Moduls prüfen, ob `json_encode()` fehlgeschlagen ist, und senden in diesem Fall keine ungültigen Daten.
