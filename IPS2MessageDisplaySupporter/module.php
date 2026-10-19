@@ -7,7 +7,7 @@
         {
             	// Diese Zeile nicht löschen.
             	parent::Create();
-		$this->RegisterMessage(0, IPS_KERNELMESSAGE);
+		$this->RegisterMessage(0, IPS_KERNELSTARTED);
 		
 		$this->ConnectParent("{8D668956-7DB5-49FD-B1A2-149149D99CEB}");
 		
