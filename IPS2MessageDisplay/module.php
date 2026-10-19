@@ -526,8 +526,14 @@ class IPS2MessageDisplay extends IPSModule
 				$content .= '<tr>';
 				If ($ShowIcon == true) {
 					$MessageType = min(3, max(0, $Message['Type']));
-					$Icon = array_key_exists($Message['Image'], $ImageMapping) ? $ImageMapping[$Message['Image']] : $TypeImage[$MessageType];
-					$content .= '<td class="icon"><i class="fa-light '.$Icon.'"></i></td>';
+					if (array_key_exists($Message['Image'], $ImageMapping)) {
+						$Icon = $ImageMapping[$Message['Image']];
+					} elseif (($Message['Image'] <> "") AND (preg_match('/^[a-z0-9-]+$/', $Message['Image']) === 1)) {
+						$Icon = "fa-".$Message['Image'];
+					} else {
+						$Icon = $TypeImage[$MessageType];
+					}
+					$content .= '<td class="icon"><i class="fa-light '.htmlspecialchars($Icon, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8').'"></i></td>';
 				}
 				If ($ShowTime == true) {
 					$SecondsToday = date('H') * 3600 + date('i') * 60 + date('s');
