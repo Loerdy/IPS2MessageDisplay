@@ -6,6 +6,20 @@ Die Änderungen sind thematisch zusammengefasst. Version **2.0.0** bezeichnet di
 
 ## [Unreleased]
 
+## [2.2.0] – JSON-Nachrichtenspeicherung
+
+### Geändert
+
+- **JSON-Speicherung:** Die persistenten Nachrichtendaten werden statt mit PHP-Serialisierung im JSON-Format gespeichert.
+- **Automatische Migration:** Bestehende serialisierte Nachrichtendaten werden beim Lesen einmalig und unter Erhalt von MessageIDs, Inhalten, Typen und Zeitstempeln nach JSON migriert.
+- **Validierung:** Gespeicherte Nachrichten und das erzeugte JSON werden vor der Verarbeitung beziehungsweise Migration anhand der verwendeten Datenstruktur geprüft.
+- **Semaphore-Sicherung:** Lesen, Migrieren und Schreiben der Nachrichtendaten erfolgen geschützt durch den instanzbezogenen Semaphore.
+- **Reduzierte Schreibzugriffe:** Unveränderte Nachrichtenlisten werden nicht erneut gespeichert.
+
+### Behoben
+
+- **Beschädigte Daten:** Nicht lesbare oder nicht migrierbare Attributdaten werden nicht durch eine leere Nachrichtenliste oder unvollständige JSON-Daten überschrieben.
+
 ## [2.1.0] – Darstellung und Diagnose
 
 ### Geändert
