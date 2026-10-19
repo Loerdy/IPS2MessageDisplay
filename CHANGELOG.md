@@ -6,6 +6,14 @@ Die Änderungen sind thematisch zusammengefasst. Version **2.0.0** bezeichnet di
 
 ## [Unreleased]
 
+## [2.2.1] – Fehlerbehandlung
+
+### Behoben
+
+- **Semaphore-Debugmeldung:** Die falsche Zuordnung des `else`-Zweigs in `WorkProcess()` wurde korrigiert. `Semaphore Abbruch!` erscheint nur noch, wenn der Semaphore-Zugriff fehlschlägt.
+- **Meldungsfenster:** Beschädigte oder nicht migrierbare Nachrichtendaten erzeugen zusätzlich zur Debugausgabe einen `KL_ERROR`-Eintrag im IP-Symcon-Meldungsfenster.
+- **Datenerhalt:** Gespeicherte Originaldaten bleiben bei Lese- oder Migrationsfehlern unverändert.
+
 ## [2.2.0] – JSON-Nachrichtenspeicherung
 
 ### Geändert
