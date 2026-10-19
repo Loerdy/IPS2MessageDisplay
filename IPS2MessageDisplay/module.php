@@ -14,7 +14,7 @@ class IPS2MessageDisplay extends IPSModule
 		$this->RegisterPropertyBoolean("ShowTime", false);
 		$this->RegisterPropertyBoolean("ShowIcon", true);
 		$this->RegisterPropertyBoolean("EnableTileView", false);
-		$this->RegisterAttributeString("MessageData", serialize(array()));
+		$this->RegisterAttributeString("MessageData", "[]");
 		$this->RegisterPropertyInteger("AutoRemove", 1000);
 		$this->RegisterTimer("AutoRemove", 0, 'IPS2MessageDisplay_AutoRemove($_IPS["TARGET"]);');
 		$this->RegisterPropertyInteger("ActuatorID", 0);
@@ -68,24 +68,18 @@ class IPS2MessageDisplay extends IPSModule
 		}
 		
 		If ($this->ReadPropertyBoolean("Open") == true) {
-			$MessageData = array();
-			set_error_handler(function ($severity, $message, $file, $line) {
-				If ($severity == E_WARNING) {
-					throw new ErrorException($message, 0, $severity, $file, $line);
-				}
-				return false;
-			});
-			try {
-				$MessageData = unserialize($this->ReadAttributeString("MessageData"), array("allowed_classes" => false));
+			$SemaphoreName = "IPS2MessageDisplay_WorkProcess_".$this->InstanceID;
+			If (IPS_SemaphoreEnter($SemaphoreName, 2000) == false) {
+				$this->SendDebug("MessageData", "Semaphore Abbruch beim Lesen der Nachrichtendaten", 0);
+				return;
 			}
-			catch (ErrorException $Exception) {
-				$MessageData = false;
+			try {
+				$MessageData = $this->ReadMessageData();
 			}
 			finally {
-				restore_error_handler();
+				IPS_SemaphoreLeave($SemaphoreName);
 			}
 			If (is_array($MessageData) == false) {
-				$this->SendDebug("MessageData", "Gespeicherte Nachrichtendaten sind ungueltig", 0);
 				return;
 			}
 			$this->RenderData($MessageData);
@@ -217,28 +211,13 @@ class IPS2MessageDisplay extends IPSModule
 		If ($this->ReadPropertyBoolean("Open") == true) {
 			if (IPS_SemaphoreEnter($SemaphoreName, 2000))
 			{
-				$MessageData = array();
-				set_error_handler(function ($severity, $message, $file, $line) {
-					If ($severity == E_WARNING) {
-						throw new ErrorException($message, 0, $severity, $file, $line);
-					}
-					return false;
-				});
 				try {
-					$MessageData = unserialize($this->ReadAttributeString("MessageData"), array("allowed_classes" => false));
-				}
-				catch (ErrorException $Exception) {
-					$MessageData = false;
-				}
-				finally {
-					restore_error_handler();
-				}
-				If (is_array($MessageData) == false) {
-					IPS_SemaphoreLeave($SemaphoreName);
-					$this->SendDebug("MessageData", "Gespeicherte Nachrichtendaten sind ungueltig", 0);
-					return;
-				}
-				switch ($Activity) {
+					$MessageData = $this->ReadMessageData();
+					If (is_array($MessageData) == false) {
+						return;
+					}
+					$MessageDataChanged = false;
+					switch ($Activity) {
 					case 'Add':
 						$NewMessageData = array(
 							"MessageID" => $MessageID,
@@ -262,6 +241,7 @@ class IPS2MessageDisplay extends IPSModule
 						if ($MessageChanged) {
 							$NewMessageData["Timestamp"] = microtime(true);
 							$MessageData[$MessageID] = $NewMessageData;
+							$MessageDataChanged = true;
 						}
 						$this->SendDebug("WorkProcess", "Message ".$MessageID." wurde hinzugefuegt", 0);
 						break;
@@ -269,6 +249,7 @@ class IPS2MessageDisplay extends IPSModule
 						If (is_array($MessageData)) {
 							if (array_key_exists($MessageID, $MessageData)) {
 								unset($MessageData[$MessageID]);
+								$MessageDataChanged = true;
 								$this->SendDebug("WorkProcess", "Message ".$MessageID." wurde entfernt", 0);
 							}
 							else {
@@ -277,13 +258,17 @@ class IPS2MessageDisplay extends IPSModule
 						}
 						break;
 					case 'RemoveAll':
-						$MessageData = array();
+						If (count($MessageData) > 0) {
+							$MessageData = array();
+							$MessageDataChanged = true;
+						}
 						$this->SendDebug("WorkProcess", "Alle Messages wurde entfernt", 0);
 						break;
 					case 'RemoveType':
 						foreach ($MessageData as $MessageID => $Message) {
 							If ($Message["Type"] == $Type) {
 								unset($MessageData[$MessageID]);
+								$MessageDataChanged = true;
 								$this->SendDebug("WorkProcess", "Message ".$MessageID." wurde entfernt", 0);
 							}
 						}
@@ -294,8 +279,8 @@ class IPS2MessageDisplay extends IPSModule
 								If ($Message["Expires"] > 0) {
 									If ($Message["Expires"] + $Message["Timestamp"] <= microtime(true) ) {
 										unset($MessageData[$MessageID]);
+										$MessageDataChanged = true;
 										$this->SendDebug("WorkProcess", "Message ".$MessageID." wurde entfernt", 0);
-										$this->RenderData($MessageData);
 									}
 								}
 							}
@@ -312,9 +297,14 @@ class IPS2MessageDisplay extends IPSModule
 						}
 						break;
 				}
-				$this->WriteAttributeString("MessageData", serialize($MessageData));
-				IPS_SemaphoreLeave($SemaphoreName);
-				If ($Activity <> "AutoRemove") {
+					If (($MessageDataChanged == true) AND ($this->WriteMessageData($MessageData) == false)) {
+						return;
+					}
+				}
+				finally {
+					IPS_SemaphoreLeave($SemaphoreName);
+				}
+				If (($Activity <> "AutoRemove") OR ($MessageDataChanged == true)) {
 					$this->RenderData($MessageData);
 				}
 			}
@@ -322,6 +312,93 @@ class IPS2MessageDisplay extends IPSModule
 		else {
 			$this->SendDebug("WorkProcess", "Semaphore Abbruch!", 0);
 		}
+	}
+
+	private function ReadMessageData()
+	{
+		$RawMessageData = $this->ReadAttributeString("MessageData");
+		try {
+			$MessageData = json_decode($RawMessageData, true, 512, JSON_THROW_ON_ERROR);
+			If (is_array($MessageData) == false) {
+				$this->SendDebug("MessageData", "Gespeicherte JSON-Nachrichtendaten sind kein Array", 0);
+				return false;
+			}
+			If ($this->ValidateMessageData($MessageData) == false) {
+				$this->SendDebug("MessageData", "Gespeicherte JSON-Nachrichtendaten haben eine ungueltige Struktur", 0);
+				return false;
+			}
+			return $MessageData;
+		}
+		catch (JsonException $Exception) {
+		}
+
+		set_error_handler(function ($severity, $message, $file, $line) {
+			throw new ErrorException($message, 0, $severity, $file, $line);
+		});
+		try {
+			$MessageData = unserialize($RawMessageData, array("allowed_classes" => false));
+		}
+		catch (Throwable $Exception) {
+			$MessageData = false;
+		}
+		finally {
+			restore_error_handler();
+		}
+		If ((is_array($MessageData) == false) OR ($this->ValidateMessageData($MessageData) == false)) {
+			$this->SendDebug("MessageData", "Gespeicherte Nachrichtendaten sind weder gueltiges JSON noch gueltige Legacy-Daten", 0);
+			return false;
+		}
+		If ($this->WriteMessageData($MessageData) == false) {
+			$this->SendDebug("MessageData", "Migration der Legacy-Nachrichtendaten ist fehlgeschlagen", 0);
+			return false;
+		}
+		$this->SendDebug("MessageData", "Legacy-Nachrichtendaten wurden erfolgreich nach JSON migriert", 0);
+		return $MessageData;
+	}
+
+	private function WriteMessageData($MessageData)
+	{
+		If ($this->ValidateMessageData($MessageData) == false) {
+			$this->SendDebug("MessageData", "Nachrichtendaten wurden wegen ungueltiger Struktur nicht gespeichert", 0);
+			return false;
+		}
+		try {
+			$JsonMessageData = json_encode($MessageData, JSON_THROW_ON_ERROR | JSON_PRESERVE_ZERO_FRACTION);
+			$VerifiedMessageData = json_decode($JsonMessageData, true, 512, JSON_THROW_ON_ERROR);
+		}
+		catch (JsonException $Exception) {
+			$this->SendDebug("MessageData", "JSON-Verarbeitung der Nachrichtendaten ist fehlgeschlagen", 0);
+			return false;
+		}
+		If ((is_array($VerifiedMessageData) == false) OR ($VerifiedMessageData !== $MessageData)) {
+			$this->SendDebug("MessageData", "JSON-Pruefung der Nachrichtendaten ist fehlgeschlagen", 0);
+			return false;
+		}
+		$this->WriteAttributeString("MessageData", $JsonMessageData);
+		return true;
+	}
+
+	private function ValidateMessageData($MessageData)
+	{
+		If (is_array($MessageData) == false) {
+			return false;
+		}
+		foreach ($MessageData as $Message) {
+			If ((is_array($Message) == false)
+				OR (isset($Message["MessageID"]) == false) OR (is_int($Message["MessageID"]) == false)
+				OR (isset($Message["Text"]) == false) OR (is_string($Message["Text"]) == false)
+				OR (isset($Message["Expires"]) == false) OR (is_int($Message["Expires"]) == false)
+				OR (array_key_exists("Removable", $Message) == false) OR (is_bool($Message["Removable"]) == false)
+				OR (isset($Message["Type"]) == false) OR (is_int($Message["Type"]) == false)
+				OR (array_key_exists("Image", $Message) == false) OR (is_string($Message["Image"]) == false)
+				OR (isset($Message["WebfrontID"]) == false) OR (is_int($Message["WebfrontID"]) == false)
+				OR (array_key_exists("Page", $Message) == false) OR (is_string($Message["Page"]) == false)
+				OR (isset($Message["Timestamp"]) == false)
+				OR ((is_int($Message["Timestamp"]) == false) AND (is_float($Message["Timestamp"]) == false))) {
+				return false;
+			}
+		}
+		return true;
 	}
 	    
 	public function Add(int $MessageID, string $Text, int $Expires, bool $Removable, int $Type, string $Image, int $WebfrontID, string $Page) 
