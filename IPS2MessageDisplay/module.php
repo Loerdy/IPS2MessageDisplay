@@ -515,8 +515,8 @@ class IPS2MessageDisplay extends IPSModule
 
 				if (array_key_exists($MessageImage, $ImageMapping)) {
 					$Icon = $ImageMapping[$MessageImage];
-				} elseif (($MessageImage <> "") AND (preg_match('/^[a-z0-9-]+$/', $MessageImage) === 1)) {
-					$Icon = "fa-".$MessageImage;
+				} elseif (($MessageImage <> "") AND (preg_match('/^[A-Za-z0-9-]+$/', $MessageImage) === 1)) {
+					$Icon = "fa-".strtolower(preg_replace('/(?<=[a-z0-9])(?=[A-Z])/', '-', $MessageImage));
 				}
 				else {
 					$Icon = $TypeImage[$Message['Type']];
@@ -620,8 +620,8 @@ class IPS2MessageDisplay extends IPSModule
 				If ($ShowIcon == true) {
 					if (array_key_exists($Message['Image'], $ImageMapping)) {
 						$Icon = $ImageMapping[$Message['Image']];
-					} elseif (($Message['Image'] <> "") AND (preg_match('/^[a-z0-9-]+$/', $Message['Image']) === 1)) {
-						$Icon = "fa-".$Message['Image'];
+					} elseif (($Message['Image'] <> "") AND (preg_match('/^[A-Za-z0-9-]+$/', $Message['Image']) === 1)) {
+						$Icon = "fa-".strtolower(preg_replace('/(?<=[a-z0-9])(?=[A-Z])/', '-', $Message['Image']));
 					} else {
 						$Icon = $TypeImage[$MessageType];
 					}
