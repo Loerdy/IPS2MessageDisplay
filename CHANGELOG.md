@@ -6,6 +6,12 @@ Die Änderungen sind thematisch zusammengefasst. Version **2.0.0** bezeichnet di
 
 ## [Unreleased]
 
+## [2.2.2] – Fehlerbehebung
+
+### Behoben
+
+- **Individuelle Meldungsicons:** In Supporter-Instanzen ausgewählte Icons werden in der klassischen HTMLBox und in der Kachelvisualisierung gegenüber dem Standard-Icon des Nachrichtentyps bevorzugt.
+
 ## [2.2.1] – Fehlerbehandlung
 
 ### Behoben
